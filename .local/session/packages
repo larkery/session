@@ -1,0 +1,35 @@
+#!/bin/sh
+nix-env -i emacs \
+        arandr \
+        dmenu \
+        dunst \
+        file \
+        git \
+        gnupg \
+        i3lock \
+        isync \
+        msmtp \
+        notmuch \
+        nox \
+        openssl \
+        pa-applet \
+        volumeicon \
+        silver-searcher \
+        qutebrowser \
+        w3m \
+        which \
+        xclip \
+        xkill \
+        xsettingsd \
+        xss-lock-git \
+        xbacklight \
+        unzip \
+        jq \
+        epass \
+        gtk-engine-murrine \
+        gnome-icon-theme \
+        numix-icon-theme \
+        pavucontrol \
+        libnotify \
+        man-pages \
+        network-manager-applet
