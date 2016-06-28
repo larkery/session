@@ -1,0 +1,13 @@
+source ~/.profile
+
+taffybar &
+xsettingsd &
+pa-applet &
+nm-applet &
+emacs --daemon &
+dunst &
+xss-lock lock &
+xsetroot -solid gray10 -cursor_name left_ptr &
+setxkbmap &
+
+export _JAVA_AWT_WM_NONREPARENTING=1

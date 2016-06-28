@@ -1,0 +1,59 @@
+#define FONT Monospace-10.5
+
+#define LBGCOL white
+#define LFGCOL grey20
+
+#define DBGCOL #161616
+#define DFGCOL #C2C2C2
+
+XTerm*background: LBGCOL
+XTerm*foreground: LFGCOL
+
+!black
+XTerm*color0:  #000000
+XTerm*color8:  #000000
+!red
+XTerm*color1:  #7f3202
+XTerm*color9:  #7f3202
+!green
+XTerm*color2:  #426d0f
+XTerm*color10: #426d0f
+!yellow
+XTerm*color3:  #a67b07
+XTerm*color11: #a67b07
+!blue
+XTerm*color4:  #0771a6
+XTerm*color12: #0771a6
+!magenta
+XTerm*color5:  #a6a007
+XTerm*color13: #a6a007
+!cyan
+XTerm*color6:  #008d9a
+XTerm*color14: #008d9a
+!white
+XTerm*color7:  #ffffff
+XTerm*color15: #ffffff
+
+XTerm*termName: XTerm-256color
+XTerm*faceName: FONT
+XTerm*font: 7x13
+XTerm*bellIsUrgent: true
+XTerm*locale: true
+XTerm*saveLines: 4096
+XTerm*eightBitInput: false
+
+Xft.autohint:  0
+Xft.lcdfilter: lcddefault
+Xft.hintstyle: hintslight
+Xft.hinting:   1
+Xft.antialias: 1
+Xft.rgba:      rgb
+
+Emacs*menubar: 0
+Emacs*verticalScrollBars:0
+Emacs*toolBar:0
+
+Emacs*foreground: LFGCOL
+Emacs*background: LBGCOL
+Emacs*FontBackend: xft
+Emacs*font: FONT

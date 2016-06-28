@@ -1,0 +1,58 @@
+########## CSE ##########
+
+IMAPAccount cse
+   Host webmail.cse.org.uk
+   User tomh@cse.org.uk
+   SSLType STARTTLS
+   SystemCertificates yes
+   AuthMechs LOGIN
+   PassCmd "epass echo password machine webmail.cse.org.uk"
+
+IMAPStore cse-remote
+    Account cse
+
+MaildirStore cse-local
+    Path ~/.mail/cse/
+    Inbox ~/.mail/cse/Inbox
+
+Channel cse
+    Master :cse-remote:
+    Slave :cse-local:
+    Patterns * !Deleted\ Items
+    SyncState *
+    Create Both
+    Expunge Both
+
+########## Fastmail ##########
+
+IMAPAccount fastmail
+   Host mail.messagingengine.com
+   User larkery@fastmail.fm
+   SSLType IMAPS
+   SystemCertificates yes
+   AuthMechs LOGIN
+   PassCmd "epass echo password machine mail.messagingengine.com"
+
+IMAPStore fastmail-remote
+    Account fastmail
+
+MaildirStore fastmail-local
+    Path ~/.mail/fastmail/
+    Inbox ~/.mail/fastmail/Inbox
+    Flatten "_"
+
+Channel fastmail-inbox
+    Master :fastmail-remote:
+    Slave :fastmail-local:
+    Patterns INBOX
+    SyncState *
+    Create Both
+    Expunge Both
+
+Channel fastmail
+    Master :fastmail-remote:
+    Slave :fastmail-local:
+    Patterns * !INBOX !Junk\ Mail
+    SyncState *
+    Create Both
+    Expunge Both

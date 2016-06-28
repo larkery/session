@@ -1,0 +1,55 @@
+#!/usr/bin/env zsh
+
+export XDG_OPEN_DEPTH=$(( ${XDG_OPEN_DEPTH:-0} + 1 ))
+
+if [[ $XDG_OPEN_DEPTH -gt 5 ]]; then
+    notify-send "recursive xdg-open looop" "$1"
+    exit 1
+fi
+
+RE_MATCH_PCRE=1
+
+if [ -e "$1" ]; then
+    mime="$(file --mime-type --brief $1)"
+    exists=1
+fi
+
+found=1
+
+while read -r mode match; do
+    if [ $found != 0 ]; then
+        case $mode in
+            test)
+                t="$1"
+                1=${(q)1}
+                eval $(eval echo $match)
+                found=$?
+                1=$t
+                ;;
+            name)
+                [[ -n $exists && "$1" =~ "${match}" ]]
+                found=$?
+            ;;
+            mime)
+                [[ -n $exists && "$mime" =~ "${match}"  ]]
+                found=$?
+            ;;
+            scheme)
+                match="^$match:"
+                [[ -z $exists && "$1" =~ "${match}" ]]
+                found=$?
+            ;;
+            url)
+                [[ -z $exists && "$1" =~ "${match}" ]]
+                found=$?
+            ;;
+        esac
+    elif [ $mode = exec ]; then
+        #echo "$1"
+        #echo $match
+        #eval echo $match
+        eval exec $match
+    fi
+done < $HOME/.config/open-rules
+
+notify-send "xdg-open failed" "$1 has no matching rule"
