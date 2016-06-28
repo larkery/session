@@ -1,0 +1,8 @@
+[Unit]
+Description=Display layout switcher
+
+[Service]
+ExecStart=/home/hinton/session/scripts/displays
+
+[Install]
+WantedBy=default.target
