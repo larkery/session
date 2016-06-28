@@ -2,7 +2,8 @@
 Description=Display layout switcher
 
 [Service]
-ExecStart=/home/hinton/session/scripts/displays
+ExecStart=/home/hinton/.local/session/scripts/displays
+Restart=always
 
 [Install]
 WantedBy=default.target
