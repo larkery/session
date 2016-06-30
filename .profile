@@ -21,3 +21,5 @@ export JavaScriptCoreUseJIT=0
 ulimit -S -c 0 >/dev/null 2>&1
 
 systemctl --user import-environment
+
+export LESS="-R -W"

@@ -16,7 +16,7 @@ unsetopt notify
 
 autoload -U zutil
 
-autoload compinit 
+autoload compinit
 autoload -U complist
 compinit
 
@@ -184,6 +184,7 @@ _up-arrow() {
 zle -N _up-arrow
 
 bindkey "\eOA" _up-arrow
+bindkey "^P" _up-arrow
 bindkey -M isearch "\eOA" history-incremental-search-backward
 bindkey -M isearch "\eOB" history-incremental-search-forward
 
@@ -223,3 +224,5 @@ _my_cp () {
 }
 
 compdef '_my_cp' cp
+
+alias edit="emacsclient -c"
