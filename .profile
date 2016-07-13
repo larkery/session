@@ -3,7 +3,6 @@ export SESSION_DIR="$HOME/.local/session"
 export MAIL_DIR="$HOME/.mail"
 export ALTERNATE_EDITOR=""
 export EDITOR="emacsclient"
-export GPG_AGENT_INFO=/run/user/$UID/gnupg/S.gpg-agent
 export SSH_AUTH_SOCK=/run/user/$UID/gnupg/S.gpg-agent.ssh
 # fix stupid new LS behaviour
 export QUOTING_STYLE=literal
