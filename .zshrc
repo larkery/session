@@ -68,8 +68,17 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 # prompt garble
 
 PROMPTSYM="$"
-PROMPT="%F{blue}%~%f\${vcs_info_msg_0_}
+PROMPT='$(_cd_destination)'"\${vcs_info_msg_0_}
 %B%(?,,%F{red})$PROMPTSYM%f%b "
+
+_cd_destination() {
+    if [[ "$BUFFER" =~ '^\.\./?' ]]; then
+        P=$(realpath -sLm "${PWD}/$BUFFER")
+        echo "-> $fg[cyan]$P$reset_color <-"
+    else
+        print -P '%F{blue}%~%f'
+    fi
+}
 
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git svn hg
@@ -162,6 +171,7 @@ rationalise-dot() {
   else
     LBUFFER+=.
   fi
+  zle reset-prompt
 }
 
 zle -N rationalise-dot
@@ -204,8 +214,6 @@ zle -N _dired
 
 bindkey "^M" _accept_or_ls
 bindkey "^X^J" _dired
-
-eval $(dircolors -b $SESSION_DIR/dircolors.ansi-light)
 
 autoload -Uz copy-earlier-word
 zle -N copy-earlier-word

@@ -1,2 +1,5 @@
 #!/bin/sh
-exec i3lock -c 403030 -d
+
+( slock && xset dpms 0 0 60 ) &
+xset dpms 0 0 2
+xset dpms force off

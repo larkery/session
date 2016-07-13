@@ -1,6 +1,5 @@
 #define FONT Monospace-10.5
 
-
 ! hard contrast: *background: #1d2021
 XTerm*background: #282828
 ! soft contrast: *background: #32302f

@@ -10,4 +10,6 @@ xss-lock lock &
 xsetroot -solid gray10 -cursor_name left_ptr &
 setxkbmap &
 
+systemctl --user start displays
+
 export _JAVA_AWT_WM_NONREPARENTING=1
