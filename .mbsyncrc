@@ -6,7 +6,7 @@ IMAPAccount cse
    SSLType STARTTLS
    SystemCertificates yes
    AuthMechs LOGIN
-   PassCmd "pass show cse.org.uk"
+   PassCmd "passm -p cse.org.uk"
 
 IMAPStore cse-remote
     Account cse
@@ -31,7 +31,7 @@ IMAPAccount fastmail
    SSLType IMAPS
    SystemCertificates yes
    AuthMechs LOGIN
-   PassCmd "pass show fastmail.fm"
+   PassCmd "passm -p fastmail.fm"
 
 IMAPStore fastmail-remote
     Account fastmail

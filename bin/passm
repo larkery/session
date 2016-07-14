@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+
+zparseopts -D c=clip t=type p=pass f:=field
+
+data=$(pass show "$1")
+out=""
+
+proc() {
+  if [[ ! -z $clip ]]; then
+     notify-send "copied $2"
+     echo -n "$1" | xclip -quiet -l 1 -selection primary
+  elif [[ ! -z $type ]]; then
+     xdotool type "$1" #insecure!!
+  else
+     echo -n "$1"
+  fi
+}
+
+for f in ${field[2,-1]}; do
+   proc $(echo -n "$data" | sed -ne 's/^'"$f"':\(.\+\)/\1/p') $f
+done
+
+if [[ ! -z $pass ]]; then
+   proc $(echo -n "$data" | head -n 1) "password"
+fi
