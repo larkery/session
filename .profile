@@ -12,6 +12,8 @@ epass serve-credentials start &
 
 # broken JIT in javascriptcore; disable.
 export JavaScriptCoreUseJIT=0
+# broken scrolling in soffice
+export GDK_CORE_DEVICE_EVENTS=1
 
 # disable coredumps
 ulimit -S -c 0 >/dev/null 2>&1
