@@ -1,10 +1,15 @@
 #define FONT Monospace-10.5
 
-! hard contrast: *background: #1d2021
+#ifdef DARK
+XTerm*background: #2e3436
+XTerm*foreground: #eeeeec
+xterm*cursorColor: #fce94f
+#else
 XTerm*background: #eeeeec
-! soft contrast: *background: #32302f
 XTerm*foreground: #2e3436
 xterm*cursorColor: #204a87
+#endif
+
 xterm*color0: #000000
 xterm*color1: #E45649
 xterm*color2: #50A14F
@@ -17,7 +22,7 @@ xterm*color8: #5c6370
 xterm*color9: #e06c75
 xterm*color10: #50A14F
 xterm*color11: #986801
-xterm*color12: #4078F2
+xterm*color12: #5088F8
 xterm*color13: #A626A4
 xterm*color14: #0184BC
 xterm*color15: #ffffff

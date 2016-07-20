@@ -1,25 +1,71 @@
 #!/usr/bin/env zsh
 
-zparseopts -D c=clip t=type p=pass f:=field
+zparseopts -D c=clip t=type p=pass f:=field s=serve q=question
+
+getf () {
+    echo -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
+}
+
+getp () {
+    echo -n "$1" | head -n 1
+}
+
+if [[ ! -z $serve ]]; then
+    uid=$(id -u)
+    mkdir -p /run/user/$uid/autofs
+    sock="/run/user/$uid/autofs/socket"
+    [[ -S $socket ]] && exit 0
+    exec socat UNIX-LISTEN:$socket,fork,reuseaddr EXEC:"passm -q"
+fi
+
+if [[ ! -z $question ]]; then
+    # read mappings for shares from file?
+    local -A shares
+    shares[cse-bs3-file]=cse.org.uk
+    while read host share cred; do
+        data=""
+        if (( ${+shares[$host/$share]} )); then
+            data=$(pass show $shares[$host/$share])
+        elif (( ${+shares[$host]} )); then
+            data=$(pass show $shares[$host])
+        fi
+        notify-send "network mount" "$host/$share"
+        # we want to echo the contents of a credentials file
+        # which the caller can use how they like.
+        if [[ ! -z $data ]]; then
+            username=$(getf "$data" "smb-username")
+            : ${username:=$(getf "$data" "username")}
+            domain=$(getf "$data" "smb-domain")
+            password=$(getp "$data")
+            out=""
+            [[ ! -z "$username" ]] && out="username=${username}"
+            [[ ! -z "$password" ]] && out="$out\npassword=${password}"
+            [[ ! -z "$domain" ]] && out="$out\ndomain=${domain}"
+            echo "$out" > "$cred"
+        fi
+        exit 0
+    done
+fi
 
 data=$(pass show "$1")
 out=""
 
 proc() {
-  if [[ ! -z $clip ]]; then
-     notify-send "copied $2"
-     echo -n "$1" | xclip -quiet -l 1 -selection primary
-  elif [[ ! -z $type ]]; then
-     xdotool type "$1" #insecure!!
-  else
-     echo -n "$1"
-  fi
+    if [[ ! -z $clip ]]; then
+        notify-send "copied $2"
+        echo -n "$1" | xclip -quiet -l 1 -selection primary
+    elif [[ ! -z $type ]]; then
+        # TODO: password revealed in args
+        xdotool type "$1"
+    else
+        echo -n "$1"
+    fi
 }
 
 for f in ${field[2,-1]}; do
-   proc $(echo -n "$data" | sed -ne 's/^'"$f"':\(.\+\)/\1/p') $f
+    proc $(getf "$data" "$f") $f
 done
 
 if [[ ! -z $pass ]]; then
-   proc $(echo -n "$data" | head -n 1) "password"
+    proc $(getp "$data") "password"
 fi

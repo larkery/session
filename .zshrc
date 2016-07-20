@@ -234,3 +234,5 @@ _my_cp () {
 compdef '_my_cp' cp
 
 alias edit="emacsclient -c"
+
+eval $(dircolors ~/.local/session/dircolors.mine)

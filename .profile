@@ -8,7 +8,7 @@ export SSH_AUTH_SOCK="${HOME}/.gnupg/S.gpg-agent.ssh"
 export QUOTING_STYLE=literal
 
 gpg-connect-agent /bye
-epass serve-credentials start &
+passm -s &
 
 # broken JIT in javascriptcore; disable.
 export JavaScriptCoreUseJIT=0
