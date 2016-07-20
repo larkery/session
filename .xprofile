@@ -7,7 +7,7 @@ nm-applet &
 emacs --daemon &
 dunst &
 xss-lock lock &
-xsetroot -solid gray10 -cursor_name left_ptr &
+xsetroot -solid "gray25" -cursor_name left_ptr &
 setxkbmap &
 
 systemctl --user start displays
