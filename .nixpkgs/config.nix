@@ -13,6 +13,15 @@
          })
        (attrs : { patches = super.emacs.patches ++ [ ./patches/emacs-xft.patch ]; }) ;
 
-     epass = import ./epass;
+     mate-themes = super.lib.overrideDerivation
+     super.mate.mate-themes
+
+     (attrs : {
+       name = "mate-themes-3.22.0";
+       src = super.fetchurl {
+         url = "http://pub.mate-desktop.org/releases/themes/3.22/mate-themes-3.22.0.tar.xz";
+         sha256 = "0d95ascqskz33nrnslncqk5wss9kmvqd6mzp3vqvjjjpdmy68nir";
+       };
+     });
    };
 }
