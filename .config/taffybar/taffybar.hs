@@ -23,6 +23,7 @@ import Data.List.Split (splitOn)
 import Data.Ratio
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Char
 
 import Control.Applicative
 
@@ -68,10 +69,10 @@ tag t = wrap open close
 pagerConfig = defaultPagerConfig
   {
     activeWindow     = tag "b" . colorize "white" "" . escape . shorten 100
-  , activeWorkspace  = tag "b" . tag "u" . escape
+  , activeWorkspace  = tag "b" . (map toUpper) . escape --tag "u"
   , visibleWorkspace = tag "b" . escape
   , hiddenWorkspace  = escape
-  , urgentWorkspace  =  tag "b" . colorize "cyan" "" . escape
+  , urgentWorkspace  = tag "b" . colorize "orange red" "" . escape
   , activeLayout = colorize "orange" "" . escape
   }
 

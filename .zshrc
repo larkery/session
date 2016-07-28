@@ -135,6 +135,7 @@ alias l='ls -l'
 alias la='l -a'
 alias add='paste -s -d+|bc'
 alias tab='cut -d "	" -f '
+alias ecn='emacsclient -c -n'
 
 o() {
     xdg-open "$@" &|
