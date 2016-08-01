@@ -73,7 +73,7 @@ pagerConfig = defaultPagerConfig
   , visibleWorkspace = tag "b" . escape
   , hiddenWorkspace  = escape
   , urgentWorkspace  = tag "b" . colorize "orange red" "" . escape
-  , activeLayout = colorize "orange" "" . escape
+  , activeLayout = colorize "cyan" "" . escape
   }
 
 main = do
