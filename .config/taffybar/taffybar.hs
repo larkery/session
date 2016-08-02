@@ -68,7 +68,7 @@ tag t = wrap open close
 
 pagerConfig = defaultPagerConfig
   {
-    activeWindow     = tag "b" . colorize "white" "" . escape . shorten 100
+    activeWindow     = colorize "white" "" . escape . shorten 100
   , activeWorkspace  = tag "b" . (map toUpper) . escape --tag "u"
   , visibleWorkspace = tag "b" . escape
   , hiddenWorkspace  = escape
