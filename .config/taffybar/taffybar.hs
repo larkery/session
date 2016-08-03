@@ -17,8 +17,6 @@ import System.Information.CPU
 import Graphics.UI.Gtk.General.RcStyle (rcParseString)
 import System.Taffybar.Battery
 
-import System.Taffybar.NetMonitor
-
 import Data.List.Split (splitOn)
 import Data.Ratio
 import qualified Data.Map as M
@@ -88,17 +86,17 @@ main = do
       clockCfg = "<span fgcolor='white'>%a %b %_d %H:%M</span>"
   let clock = textClockNew Nothing clockCfg 1
       bat = pollingBarNew defaultBatteryConfig 10 battsum
-
       cpu   = pollingGraphNew cpuCfg 2 cpuCallback
-      nm    = netMonitorNew 2 "eno1"
       tray  = systrayNew
       pager = taffyPagerNew pagerConfig
 
   defaultTaffybar defaultTaffybarConfig
                   { barHeight = 20
+                  , barPosition = Bottom
                   , startWidgets = [ pager ]
-                  , endWidgets = [ tray, clock
+                  , endWidgets = [ tray
+                                 , clock
                                  , bat
-                                 , cpu, nm
+                                 , cpu
                                  ]
                   }
