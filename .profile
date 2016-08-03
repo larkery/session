@@ -4,12 +4,16 @@ export SESSION_DIR="$HOME/.local/session"
 export MAIL_DIR="$HOME/.mail"
 export ALTERNATE_EDITOR=""
 export EDITOR="emacsclient"
-export SSH_AUTH_SOCK="${HOME}/.gnupg/S.gpg-agent.ssh"
 # fix stupid new LS behaviour
 export QUOTING_STYLE=literal
 
 gpg-connect-agent /bye
 passm -s &
+
+export SSH_AUTH_SOCK="${HOME}/.gnupg/S.gpg-agent.ssh"
+if [ ! -S "${SSH_AUTH_SOCK}" ]; then
+    export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
+fi
 
 # broken JIT in javascriptcore; disable.
 export JavaScriptCoreUseJIT=0
