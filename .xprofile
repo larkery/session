@@ -1,6 +1,6 @@
 source ~/.profile
 
-taffybar &
+#taffybar &
 xsettingsd &
 pa-applet &
 nm-applet &
