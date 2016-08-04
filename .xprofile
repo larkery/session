@@ -3,11 +3,11 @@ source ~/.profile
 #taffybar &
 xsettingsd &
 pa-applet &
-nm-applet &
+#nm-applet &
 emacs --daemon &
 dunst &
 xss-lock lock &
-xsetroot -solid "gray25" -cursor_name left_ptr &
+xsetroot -solid "black" -cursor_name left_ptr &
 setxkbmap &
 
 systemctl --user start displays
