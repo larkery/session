@@ -1,15 +1,16 @@
 source ~/.profile
 
-#taffybar &
+taffybar &
 xsettingsd &
 pa-applet &
-#nm-applet &
+nm-applet &
 emacs --daemon &
 dunst &
 xss-lock lock &
 xsetroot -solid "black" -cursor_name left_ptr &
 setxkbmap &
 
-systemctl --user start displays
+systemctl --user import-environment
+{sleep 5 ; systemctl --user start displays} &
 
 export _JAVA_AWT_WM_NONREPARENTING=1

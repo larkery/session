@@ -1,15 +1,13 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 
 import System.Taffybar
 
-import System.Taffybar.Pager
-import System.Taffybar.TaffyPager
 import System.Taffybar.Systray
 import System.Taffybar.SimpleClock
 import System.Taffybar.Weather
 
-import System.Taffybar.Widgets.PollingBar
-import System.Taffybar.Widgets.PollingGraph
+import System.Taffybar.Widgets.PollingLabel
+import System.Taffybar.CommandRunner
 
 import System.Information.Memory
 import System.Information.CPU
@@ -22,8 +20,13 @@ import Data.Ratio
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Char
+import Text.Printf
 
 import Control.Applicative
+
+import DBus ( toVariant, fromVariant, Signal(..), signal )
+import DBus.Client ( addMatch, matchAny, MatchRule(..), connectSession, emit, Client )
+import Graphics.UI.Gtk hiding ( Signal )
 
 memCallback = do
   mi <- parseMeminfo
@@ -32,7 +35,6 @@ memCallback = do
 cpuCallback = do
   (userLoad, systemLoad, totalLoad) <- cpuLoad
   return [totalLoad, systemLoad]
-
 
 readBatt = do
   thelines <- readFile "/sys/class/power_supply/BAT0/uevent"
@@ -52,51 +54,65 @@ battStat m =
              return $ (read now :: Integer, read full :: Integer, read current :: Integer)
   in a <|> b
 
-battsum :: IO Double
-battsum = do
+batteryString :: IO String
+batteryString = do
   dat <- readBatt
-  return $ fromMaybe 0 $ do (n, f, r) <- battStat dat
-                            let per =  (n % f)
-                            return $ fromRational per
+  return $ fromMaybe "?" $
+    do (n, f, r) <- battStat dat
+       let per =  (n % f)
+       return $ printf "B: %d%%" (floor (min 100 $ per * 100) :: Integer)
 
-tag t = wrap open close
-  where open = '<':t'
-        close = '<':'/':t'
-        t' = t ++ ">"
+batticator = do bat <- pollingLabelNew "..." 5 batteryString
+                widgetShowAll bat
+                return $ toWidget bat
 
-pagerConfig = defaultPagerConfig
-  {
-    activeWindow     = colorize "white" "" . escape . shorten 100
-  , activeWorkspace  = tag "b" . (map toUpper) . escape --tag "u"
-  , visibleWorkspace = tag "b" . escape
-  , hiddenWorkspace  = escape
-  , urgentWorkspace  = tag "b" . colorize "orange red" "" . escape
-  , activeLayout = colorize "cyan" "" . escape
-  }
+sep :: IO Widget
+sep = do l <- labelNew (Nothing :: Maybe String)
+         labelSetMarkup l ("<span fgcolor='grey'>|</span>" :: String)
+         widgetShowAll l
+         return $ toWidget l
 
 main = do
-  let memCfg = defaultGraphConfig { graphDataColors = [(1, 0, 0, 1)]
-                                  , graphLabel = Just "mem"
-                                  }
-      cpuCfg = defaultGraphConfig { graphDataColors = [ (0, 1, 0, 1)
-                                                      , (1, 0, 1, 0.5)
-                                                      ]
-                                  , graphLabel = Just "cpu"
-                                  }
-      clockCfg = "<span fgcolor='white'>%a %b %_d %H:%M</span>"
+  let clockCfg = "<span fgcolor='white'>%a %b %d %H:%M</span>"
   let clock = textClockNew Nothing clockCfg 1
-      bat = pollingBarNew defaultBatteryConfig 10 battsum
-      cpu   = pollingGraphNew cpuCfg 2 cpuCallback
-      tray  = systrayNew
-      pager = taffyPagerNew pagerConfig
 
   defaultTaffybar defaultTaffybarConfig
                   { barHeight = 20
                   , barPosition = Bottom
-                  , startWidgets = [ pager ]
-                  , endWidgets = [ tray
+                  , startWidgets = [ xmonadLogNew ]
+                  , endWidgets = [ systrayNew
+                                 , sep
                                  , clock
-                                 , bat
-                                 , cpu
+                                 , sep
+                                 , batticator
                                  ]
                   }
+
+-- yanked from the codebase as is deprecated, but I like it.
+
+xmonadLogNew :: IO Widget
+xmonadLogNew = do
+  l <- labelNew (Nothing :: Maybe String)
+  _ <- on l realize $ setupDbus l
+  widgetShowAll l
+  return (toWidget l)
+
+setupDbus :: Label -> IO ()
+setupDbus w = do
+  let matcher = matchAny { matchSender = Nothing
+                          , matchDestination = Nothing
+                          , matchPath = Just "/org/xmonad/Log"
+                          , matchInterface = Just "org.xmonad.Log"
+                          , matchMember = Just "Update"
+                          }
+
+  client <- connectSession
+  addMatch client matcher (callback w)
+  return ()
+
+callback :: Label -> Signal -> IO ()
+callback w sig = do
+  let [bdy] = signalBody sig
+      status :: String
+      Just status = fromVariant bdy
+  postGUIAsync $ labelSetMarkup w (' ':status)

@@ -14,8 +14,9 @@ if [[ ! -z $serve ]]; then
     uid=$(id -u)
     mkdir -p /run/user/$uid/autofs
     sock="/run/user/$uid/autofs/socket"
-    [[ -S $socket ]] && exit 0
-    exec socat UNIX-LISTEN:$socket,fork,reuseaddr EXEC:"passm -q"
+    [[ -S $sock ]] && exit 0
+    echo "serve on $sock"
+    exec socat UNIX-LISTEN:$sock,fork,reuseaddr EXEC:"passm -q"
 fi
 
 if [[ ! -z $question ]]; then
