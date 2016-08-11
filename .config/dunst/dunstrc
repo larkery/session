@@ -37,3 +37,9 @@
     background = "#801515"
     foreground = "#D46A6A"
     timeout = 0
+
+[urgent windows]
+    appname = urgency
+    background = "#aaaaaa"
+    foreground = "#444444"
+    timeout = 1

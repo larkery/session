@@ -1,6 +1,7 @@
 #!/bin/sh
 
-gpg-connect-agent reloadagent /bye
+# this is kind of annoying but also "correct"
+# gpg-connect-agent reloadagent /bye
 
 ( slock && xset dpms 0 0 240 ) &
 xset dpms 0 0 2
