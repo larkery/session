@@ -16,7 +16,7 @@
 
 [frame]
     width = 1
-    color = "#ff0000"
+    color = "#555555"
 
 [shortcuts]
     close = ctrl+space
@@ -41,6 +41,6 @@
 
 [urgent windows]
     appname = urgency
-    background = "#aaaaaa"
-    foreground = "#444444"
+    background = "#008b8b"
+    foreground = "#ffffff"
     timeout = 1
