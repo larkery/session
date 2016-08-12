@@ -14,6 +14,7 @@ from xcffib.xproto import *
 import select
 import xcffib.randr as RandR
 from xcffib.randr import NotifyMask, ScreenChangeNotifyEvent
+import time
 
 def dprint(*args, **kwargs):
     print("displays.py:", *args, **kwargs)
@@ -191,6 +192,7 @@ class StateM:
             dprint('bad config produced for', self.hash)
 
 if __name__ == "__main__":
+    time.sleep(4)
     l = ELoop()
     s = StateM()
     w = RandRL(l, s)

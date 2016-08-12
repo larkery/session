@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 NEW=$(notmuch count -- tag:new)
-SUB=$(notmuch search --format=json -- tag:new | jq -j '.[0:5]|.[]|.subject+"\n "')
+SUB=$(notmuch search --format=json -- tag:new | jq -j '.[0:5]|.[]|.subject+"\n"')
 notmuch tag -new -- tag:new
 
 "$SESSION_DIR/scripts/refile" >/dev/null
