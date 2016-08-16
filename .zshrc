@@ -136,6 +136,7 @@ alias la='l -a'
 alias add='paste -s -d+|bc'
 alias tab='cut -d "	" -f '
 alias ecn='emacsclient -c -n'
+alias assh='autossh -M 0 -o "ServerAliveInterval 45" -o "ServerAliveCountMax 2"'
 
 o() {
     xdg-open "$@" &|

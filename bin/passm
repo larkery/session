@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-zparseopts -D c=clip t=type p=pass f:=field s=serve q=question
+zparseopts -D c=clip t=type p=pass f+:=field s=serve q=question
 
 getf () {
     echo -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
@@ -63,10 +63,11 @@ proc() {
     fi
 }
 
-for f in ${field[2,-1]}; do
-    proc $(getf "$data" "$f") $f
+field=("${(@)field:#-f}")
+for f in ${field}; do
+    proc "$(getf $data $f)" $f
 done
 
 if [[ ! -z $pass ]]; then
-    proc $(getp "$data") "password"
+    proc "$(getp $data)" "password"
 fi
