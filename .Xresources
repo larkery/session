@@ -10,22 +10,6 @@ XTerm*foreground: #2e3436
 xterm*cursorColor: #204a87
 #endif
 
-xterm*color0: #000000
-xterm*color1: #E45649
-xterm*color2: #50A14F
-xterm*color3: #986801
-xterm*color4: #4078F2
-xterm*color5: #A626A4
-xterm*color6: #0184BC
-xterm*color7: #A0A1A7
-xterm*color8: #5c6370
-xterm*color9: #e06c75
-xterm*color10: #50A14F
-xterm*color11: #986801
-xterm*color12: #5088F8
-xterm*color13: #A626A4
-xterm*color14: #0184BC
-xterm*color15: #ffffff
 
 XTerm*termName: XTerm-256color
 XTerm*faceName: FONT
@@ -49,3 +33,52 @@ Emacs*toolBar:0
 Emacs*FontBackend: xft
 Emacs*font: FONT
 Emacs*pointerColor: #ffffff
+
+
+! black
+*color0: #000000
+
+! bright_black
+*color8: #262626
+
+! red
+*color1: #ae8684
+
+! bright_red
+*color9: #d8c5c4
+
+! green
+*color2: #84ae86
+
+! bright_green
+*color10: #c4d8c5
+
+! yellow
+*color3: #acae84
+
+! bright_yellow
+*color11: #d7d8c4
+
+! blue
+*color4: #8684ae
+
+! bright_blue
+*color12: #c5c4d8
+
+! magenta
+*color5: #ae84ac
+
+! bright_magenta
+*color13: #d8c4d7
+
+! cyan
+*color6: #84acae
+
+! bright_cyan
+*color14: #c4d7d8
+
+! white
+*color7: #d9d9d9
+
+! bright_white
+*color15: #ffffff
