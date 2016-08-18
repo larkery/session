@@ -238,3 +238,6 @@ compdef '_my_cp' cp
 alias edit="emacsclient -c"
 
 eval $(dircolors ~/.local/session/dircolors.mine)
+export ALTERNATE_EDITOR=""
+export EDITOR="emacsclient"
+export VISUAL="emacsclient -c"
