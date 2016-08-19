@@ -55,10 +55,12 @@ zstyle ':completion:*' separate-sections yes
 zstyle :compinstall filename '/home/hinton/.zshrc'
 
 # history
-setopt appendhistory hist_ignore_space hist_ignore_all_dups
+setopt appendhistory hist_ignore_space hist_ignore_all_dups extendedhistory incappendhistory sharehistory
+
 HISTFILE=~/.zsh/history
 HISTSIZE=10000
 SAVEHIST=10000
+
 (( $+widgets[history-incremental-pattern-search-backward] )) &&	\
     bindkey '^r' history-incremental-pattern-search-backward
 
@@ -236,8 +238,14 @@ _my_cp () {
 compdef '_my_cp' cp
 
 alias edit="emacsclient -c"
+alias m="man"
+alias c="cat"
 
 eval $(dircolors ~/.local/session/dircolors.mine)
 export ALTERNATE_EDITOR=""
 export EDITOR="emacsclient"
 export VISUAL="emacsclient -c"
+
+zle -C hist-complete complete-word _generic
+zstyle ':completion:hist-complete:*' completer _history
+bindkey "^X^R" hist-complete
