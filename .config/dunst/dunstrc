@@ -43,4 +43,4 @@
     appname = urgency
     background = "#008b8b"
     foreground = "#ffffff"
-    timeout = 1
+    timeout = 5

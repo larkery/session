@@ -3,11 +3,11 @@
 #ifdef DARK
 XTerm*background: #2e3436
 XTerm*foreground: #eeeeec
-xterm*cursorColor: #fce94f
+XTerm*cursorColor: green
 #else
 XTerm*background: #eeeeec
 XTerm*foreground: #2e3436
-xterm*cursorColor: #204a87
+XTerm*cursorColor: green
 #endif
 
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
