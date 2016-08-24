@@ -27,10 +27,16 @@ if [[ ! -z $question ]]; then
         data=""
         if (( ${+shares[$host/$share]} )); then
             data=$(pass show $shares[$host/$share])
+            E=$?
         elif (( ${+shares[$host]} )); then
             data=$(pass show $shares[$host])
+            E=$?
         fi
-        notify-send "network mount" "$host/$share"
+        if [ $E -ne 0 ]; then
+            notify -u critical "network mount" "$host/$share - returned $E"
+        else
+            notify "network mount" "$host/$share"
+        fi
         # we want to echo the contents of a credentials file
         # which the caller can use how they like.
         if [[ ! -z $data ]]; then

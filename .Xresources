@@ -3,11 +3,11 @@
 #ifdef DARK
 XTerm*background: #2e3436
 XTerm*foreground: #eeeeec
-XTerm*cursorColor: green
+XTerm*cursorColor: red
 #else
 XTerm*background: #eeeeec
 XTerm*foreground: #2e3436
-XTerm*cursorColor: green
+XTerm*cursorColor: red
 #endif
 
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
@@ -39,34 +39,49 @@ Emacs*font: FONT
 Emacs*pointerColor: #ffffff
 
 
-! black
 *color0: #000000
+
+! bright_black
 *color8: #262626
 
 ! red
-*color1: #ae8684
-*color9: #d8c5c4
+*color1: #c56d70
+
+! bright_red
+*color9: #d39092
 
 ! green
-*color2: #84ae86
-*color10: #c4d8c5
+*color2: #70c56d
+
+! bright_green
+*color10: #92d390
 
 ! yellow
-*color3: #acae84
-*color11: #d7d8c4
+*color3: #c5c36d
+
+! bright_yellow
+*color11: #d3d190
 
 ! blue
-*color4: #8684ae
-*color12: #c5c4d8
+*color4: #6d70c5
+
+! bright_blue
+*color12: #9092d3
 
 ! magenta
-*color5: #ae84ac
-*color13: #d8c4d7
+*color5: #c36dc5
+
+! bright_magenta
+*color13: #d190d3
 
 ! cyan
-*color6: #84acae
-*color14: #c4d7d8
+*color6: #6dc5c3
+
+! bright_cyan
+*color14: #90d3d1
 
 ! white
 *color7: #d9d9d9
+
+! bright_white
 *color15: #ffffff
