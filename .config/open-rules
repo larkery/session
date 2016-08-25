@@ -18,6 +18,8 @@ mime inode/directory
 mime text/.+
 exec emacsclient -c "$1"
 mime application/msword
+name docx$
+name doc$
 exec soffice "$1"
 name .*
 exec $(dmenu_path|dmenu -p "open $(basename $1) ($mime) with: ") "$1"

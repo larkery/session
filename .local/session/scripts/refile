@@ -164,7 +164,8 @@ def maildir_specific_actions(maildir, archive, trash):
         ('tag:inbox and not folder:"%s/Inbox"' % (maildir), remove_tag('inbox')),
         ('tag:inbox and folder:"%s/Sent Items"' % (maildir), remove_tag('inbox')),
         ('folder:"%s/Inbox" AND NOT tag:inbox' % (maildir), refile_to('%s/%s' % (maildir, archive))),
-        ('folder:"%s/%s" AND tag:inbox' % (maildir, trash), remove_tag('inbox'))
+        ('folder:"%s/%s" AND tag:inbox' % (maildir, trash), remove_tag('inbox')),
+        ('tag:deleted AND NOT folder:"%s/%s"' % (maildir, trash), refile_to('%s/%s' % (maildir, trash)))
     ]
 
     if sleepy_tags:
