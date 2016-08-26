@@ -173,8 +173,8 @@ def maildir_specific_actions(maildir, archive, trash):
 
     return restrict('path:%s/**' % (maildir), actions)
 
-actions = [ ('tag:deleted and date:..1w', delete) ,
-            ('not tag:sent and (from:t@larkery.com or from:tom.hinton@cse.org.uk)', add_tag('sent')) ] + \
+            #('not tag:sent and (from:t@larkery.com or from:tom.hinton@cse.org.uk)', add_tag('sent')) ] + \
+actions = [ ('tag:deleted and date:..1w', delete) ] + \
   maildir_specific_actions('cse', 'Archives', 'Deleted Items') + \
   maildir_specific_actions('fastmail', 'Archive', 'Trash') + \
   [ ('path:cse/** AND subject:EXS- AND NOT tag:EXS',

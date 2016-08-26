@@ -1,4 +1,4 @@
-#define FONT Monospace-10
+#define FONT Hack-10
 
 #ifdef DARK
 XTerm*background: #2e3436
