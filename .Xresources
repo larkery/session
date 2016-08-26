@@ -39,49 +39,50 @@ Emacs*font: FONT
 Emacs*pointerColor: #ffffff
 
 
+! black
 *color0: #000000
 
 ! bright_black
-*color8: #262626
+*color8: #272727
 
 ! red
-*color1: #c56d70
+*color1: #d76953
 
 ! bright_red
-*color9: #d39092
+*color9: #e39787
 
 ! green
-*color2: #70c56d
+*color2: #53d769
 
 ! bright_green
-*color10: #92d390
+*color10: #87e397
 
 ! yellow
-*color3: #c5c36d
+*color3: #c1d753
 
 ! bright_yellow
-*color11: #d3d190
+*color11: #d4e387
 
 ! blue
-*color4: #6d70c5
+*color4: #6953d7
 
 ! bright_blue
-*color12: #9092d3
+*color12: #9787e3
 
 ! magenta
-*color5: #c36dc5
+*color5: #d753c1
 
 ! bright_magenta
-*color13: #d190d3
+*color13: #e387d4
 
 ! cyan
-*color6: #6dc5c3
+*color6: #53c1d7
 
 ! bright_cyan
-*color14: #90d3d1
+*color14: #87d4e3
 
 ! white
-*color7: #d9d9d9
+*color7: #d8d8d8
 
 ! bright_white
 *color15: #ffffff
