@@ -71,14 +71,14 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
 PROMPTSYM="$"
 PROMPT='$(_cd_destination)'"\${vcs_info_msg_0_}
-%B%(?,,%F{red})$PROMPTSYM%f%b "
+%B%(?,,%F{red}[$?]%f )$PROMPTSYM%b "
 
 _cd_destination() {
     if [[ "$BUFFER" =~ '^\.\./?' ]]; then
         P=$(realpath -sLm "${PWD}/$BUFFER")
         echo "-> $fg[cyan]$P$reset_color <-"
     else
-        print -P '%F{blue}%~%f'
+        print -P '%B%~%b'
     fi
 }
 
@@ -238,8 +238,6 @@ _my_cp () {
 compdef '_my_cp' cp
 
 alias edit="emacsclient -c"
-alias m="man"
-alias c="cat"
 
 eval $(dircolors ~/.local/session/dircolors.mine)
 export ALTERNATE_EDITOR=""
