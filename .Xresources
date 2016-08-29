@@ -1,4 +1,4 @@
-#define FONT Hack-10
+#define FONT Terminus-12
 
 #ifdef DARK
 XTerm*background: #2e3436

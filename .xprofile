@@ -3,7 +3,6 @@ source ~/.profile
 taffybar &
 xsettingsd &
 pa-applet &
-nm-applet &
 emacs --daemon &
 dunst &
 xss-lock lock &

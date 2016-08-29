@@ -71,7 +71,7 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
 PROMPTSYM="$"
 PROMPT='$(_cd_destination)'"\${vcs_info_msg_0_}
-%B%(?,,%F{red}[$?]%f )$PROMPTSYM%b "
+%B%(?,,%F{red}[%?]%f )$PROMPTSYM%b "
 
 _cd_destination() {
     if [[ "$BUFFER" =~ '^\.\./?' ]]; then
