@@ -247,3 +247,6 @@ export VISUAL="emacsclient -c"
 zle -C hist-complete complete-word _generic
 zstyle ':completion:hist-complete:*' completer _history
 bindkey "^X^R" hist-complete
+
+alias -g ND='*(/om[1])' # newest directory
+alias -g NF='*(.om[1])' # newest file

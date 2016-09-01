@@ -2,7 +2,6 @@ source ~/.profile
 
 taffybar &
 xsettingsd &
-pa-applet &
 emacs --daemon &
 dunst &
 xss-lock lock &
@@ -10,8 +9,8 @@ xsetroot -solid "black" -cursor_name left_ptr &
 setxkbmap &
 
 systemctl --user import-environment
-{sleep 5 ; systemctl --user start displays} &
 
 echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
 export _JAVA_AWT_WM_NONREPARENTING=1
+(sleep 1 ; systemctl --user start displays) &

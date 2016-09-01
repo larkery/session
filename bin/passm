@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-zparseopts -D c=clip t=type p=pass f+:=field s=serve q=question
+zparseopts -D c=clip t=type p=pass f+:=field s=serve q=question l=login h=help
 
 getf () {
     echo -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
@@ -9,6 +9,18 @@ getf () {
 getp () {
     echo -n "$1" | head -n 1
 }
+
+if [[ ! -z $help ]]; then
+    echo "usage: $0 [-c] [-t] [-p] [-f field] [-s] [-q] [-l]"
+    echo "	-c copy fields to clipboard"
+    echo "	-t type fields in with xdotool"
+    echo "	-p operate on password"
+    echo "	-f <field> operate on <field>"
+    echo "	-s serve autofs requests"
+    echo "	-q make autofs request"
+    echo "	-l do a login"
+    exit 0
+fi
 
 if [[ ! -z $serve ]]; then
     uid=$(id -u)
