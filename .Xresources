@@ -86,3 +86,10 @@ Emacs*pointerColor: #ffffff
 
 ! bright_white
 *color15: #ffffff
+
+xclock*width: 100
+xclock*height: 100
+xclock*chime: true
+
+xclock*hourColor: red
+xclock*minuteColor: red
