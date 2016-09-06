@@ -14,5 +14,5 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
 export _JAVA_AWT_WM_NONREPARENTING=1
 
-reanimate 30s ~/.session/scripts/displays >/dev/null 2>&1 &
+reanimate 30s ~/.local/session/scripts/displays >/dev/null 2>&1 &
 every 30m notmuch new >/dev/null 2>&1 &
