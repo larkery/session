@@ -1,0 +1,13 @@
+#!/bin/sh
+
+delay=$1
+shift
+
+while true; do
+      "$@"
+      if [ $? == 0 ]; then
+         exit 0
+      fi
+      echo "$1 is ALIVE"
+      sleep $delay
+done

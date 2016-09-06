@@ -49,7 +49,10 @@ def refile(mail, dest):
     #     print('could not read uidvalidity, might wreck stuff', uvfile, file=sys.stderr)
     new_name = generate_name(mail)
     new_name = os.path.join(dest, new_name)
-    shutil.move(mail, new_name)
+    try:
+      shutil.move(mail, new_name)
+    except:
+      pass
     return new_name
 
 def refile_to(path):
@@ -62,11 +65,14 @@ def refile_to(path):
                 break
         else:
             for fn in files:
+              try:
                 fn2 = refile(fn, path)
                 db.add_message(fn2)
                 db.remove_message(fn)
                 affected.append(md(fn))
                 affected.append(md(fn2))
+              except:
+                pass
             return affected
 
         # if we get here, that means that the loop above broke
@@ -89,7 +95,10 @@ def delete(msg, db):
     for fn in msg.get_filenames():
         db.remove_message(fn)
         result.append(md(fn))
-        os.remove(fn)
+        try:
+            os.remove(fn)
+        except e:
+            pass
     return result
 
 def remove_tag(tag):

@@ -81,7 +81,6 @@ main = do
                   , barPosition = Bottom
                   , startWidgets = [ xmonadLogNew ]
                   , endWidgets = [ systrayNew
-                                 , sep
                                  , clock
                                  , sep
                                  , batticator
