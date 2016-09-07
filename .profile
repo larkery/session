@@ -7,7 +7,7 @@ export EDITOR="emacsclient"
 # fix stupid new LS behaviour
 export QUOTING_STYLE=literal
 
-gpg-connect-agent /bye
+gpg-connect-agent updatestartuptty /bye
 passm -s &
 
 export SSH_AUTH_SOCK="${HOME}/.gnupg/S.gpg-agent.ssh"
@@ -22,7 +22,4 @@ export GDK_CORE_DEVICE_EVENTS=1
 
 # disable coredumps
 ulimit -S -c 0 >/dev/null 2>&1
-
-systemctl --user import-environment
-
 export LESS="-R -W"

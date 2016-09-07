@@ -2,17 +2,14 @@ source ~/.profile
 
 taffybar &
 xsettingsd &
-emacs --daemon &
 dunst &
 xss-lock lock &
-xsetroot -solid "black" -cursor_name left_ptr &
+xsetroot -solid black -cursor_name left_ptr
 setxkbmap &
-
-systemctl --user import-environment
 
 echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
 export _JAVA_AWT_WM_NONREPARENTING=1
 
-reanimate 30s ~/.local/session/scripts/displays >/dev/null 2>&1 &
-every 30m notmuch new >/dev/null 2>&1 &
+every 15m notmuch new > ~/.mail-log 2>&1 </dev/null &
+reanimate 5s ~/.local/session/scripts/displays >/dev/null 2>&1 </dev/null &

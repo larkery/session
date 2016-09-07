@@ -12,6 +12,7 @@ autoload -Uz $SESSION_DIR/zsh/functions/*(:t)
 
 # options
 setopt autocd beep extendedglob nomatch prompt_subst menu_complete re_match_pcre
+setopt longlistjobs checkjobs notify
 unsetopt notify
 
 autoload -U zutil
@@ -250,3 +251,8 @@ bindkey "^X^R" hist-complete
 
 alias -g ND='*(/om[1])' # newest directory
 alias -g NF='*(.om[1])' # newest file
+
+# repl () {
+#     rlwrap zsh -c 'echo hello "$@"; while true; do printf "%s> " "$@"; read -r || break; eval command \"\$@\" "$REPLY"; done' "$@"
+# }
+# use with

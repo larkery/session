@@ -192,7 +192,6 @@ class StateM:
             dprint('bad config produced for', self.hash)
 
 if __name__ == "__main__":
-    time.sleep(4)
     l = ELoop()
     s = StateM()
     w = RandRL(l, s)
