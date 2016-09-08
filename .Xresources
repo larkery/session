@@ -1,15 +1,26 @@
 #define FONT Terminus-12
 
-#ifdef DARK
-XTerm*background: #2e3436
-XTerm*foreground: #eeeeec
-XTerm*cursorColor: red
-#else
+URxvt.font: xft:Terminus:size=12, xft:Mono:size=12, xft:Symbola:size=12, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
+
+#ifdef LIGHT
 XTerm*background: #eeeeec
 XTerm*foreground: #2e3436
-XTerm*cursorColor: red
+URxvt*background: #eeeeec
+URxvt*foreground: #2e3436
+#else
+XTerm*background: #2e3436
+XTerm*foreground: #eeeeec
+URxvt*background: #2e3436
+URxvt*foreground: #eeeeec
 #endif
 
+URxvt*urgentOnBell: true
+URxvt*saveLines: 5000
+URxvt*cursorColor: red
+URxvt*termName: rxvt-unicode-256color
+URxvt*scrollBar: false
+
+XTerm*cursorColor: red
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
 XTerm*termName: XTerm-256color
 XTerm*faceName: FONT

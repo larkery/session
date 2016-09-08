@@ -11,7 +11,7 @@ fpath=( $SESSION_DIR/zsh/functions "${fpath[@]}" )
 autoload -Uz $SESSION_DIR/zsh/functions/*(:t)
 
 # options
-setopt autocd beep extendedglob nomatch prompt_subst menu_complete re_match_pcre
+setopt autocd nobeep extendedglob nomatch prompt_subst menu_complete re_match_pcre
 setopt longlistjobs checkjobs notify
 unsetopt notify
 
@@ -105,7 +105,7 @@ fi
 autoload -Uz add-zsh-hook
 
 case $TERM in
-    xterm*)
+    (rxvt|xterm)*)
         _title_preexec() {
             _STARTED=$(date +%s)
             printf "\033];%s\07" "$1"
@@ -198,10 +198,10 @@ _up-arrow() {
 
 zle -N _up-arrow
 
-bindkey "\eOA" _up-arrow
+bindkey "^[[A" _up-arrow
 bindkey "^P" _up-arrow
-bindkey -M isearch "\eOA" history-incremental-search-backward
-bindkey -M isearch "\eOB" history-incremental-search-forward
+bindkey -M isearch "^[[A" history-incremental-search-backward
+bindkey -M isearch "^[[B" history-incremental-search-forward
 
 DIRSTACKSIZE=8
 setopt autopushd pushdminus pushdsilent pushdtohome
@@ -256,3 +256,5 @@ alias -g NF='*(.om[1])' # newest file
 #     rlwrap zsh -c 'echo hello "$@"; while true; do printf "%s> " "$@"; read -r || break; eval command \"\$@\" "$REPLY"; done' "$@"
 # }
 # use with
+
+alias repl='rlwrap with '
