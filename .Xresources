@@ -7,20 +7,24 @@ XTerm*background: #eeeeec
 XTerm*foreground: #2e3436
 URxvt*background: #eeeeec
 URxvt*foreground: #2e3436
+URxvt*cursorColor: black
+XTerm*cursorColor: black
 #else
 XTerm*background: #2e3436
 XTerm*foreground: #eeeeec
 URxvt*background: #2e3436
 URxvt*foreground: #eeeeec
+URxvt*cursorColor: white
+XTerm*cursorColor: white
 #endif
 
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
-URxvt*cursorColor: red
+
 URxvt*termName: rxvt-unicode-256color
 URxvt*scrollBar: false
 
-XTerm*cursorColor: red
+
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
 XTerm*termName: XTerm-256color
 XTerm*faceName: FONT
