@@ -21,7 +21,7 @@ XTerm*cursorColor: white
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
 
-URxvt*termName: rxvt-unicode-256color
+URxvt*termName: rxvt-256color
 URxvt*scrollBar: false
 
 

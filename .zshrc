@@ -153,15 +153,6 @@ alias -s png=o
 MARKPATH=$ZSH/run/marks
 bookmark -l
 
-vbe-insert-bookmark() {
-   emulate -L zsh
-   LBUFFER=${LBUFFER}"~-"
-   zle expand-or-complete-prefix
-}
-
-zle -N vbe-insert-bookmark
-bindkey '^[i' vbe-insert-bookmark
-
 # directory memory
 autoload -Uz chpwd_recent_dirs cdr
 add-zsh-hook chpwd chpwd_recent_dirs
