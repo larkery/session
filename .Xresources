@@ -1,6 +1,6 @@
 #define FONT Monospace-11
 
-URxvt.font: xft:Monospace:size=11, xft:Mono:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
+URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
 #ifdef LIGHT
 XTerm*background: #eeeeec

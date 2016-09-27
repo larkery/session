@@ -35,8 +35,10 @@ if [[ ! -z $question ]]; then
     # read mappings for shares from file?
     local -A shares
     shares[cse-bs3-file]=cse.org.uk
+    shares[cse-bs3-file.cse.org.uk]=cse.org.uk
     while read host share cred; do
         data=""
+        E="1"
         if (( ${+shares[$host/$share]} )); then
             data=$(pass show $shares[$host/$share])
             E=$?
@@ -44,7 +46,7 @@ if [[ ! -z $question ]]; then
             data=$(pass show $shares[$host])
             E=$?
         fi
-        if [ $E -ne 0 ]; then
+        if [[ $E -ne 0 ]]; then
             notify -u critical "network mount" "$host/$share - returned $E"
         else
             notify "network mount" "$host/$share"
