@@ -249,3 +249,5 @@ alias -g NF='*(.om[1])' # newest file
 # use with
 
 alias repl='rlwrap with '
+
+gpg-connect-agent -q updatestartuptty /bye 2>&1 >/dev/null
