@@ -6,12 +6,23 @@
        patches = [ ./patches/dmenu-number-output.patch ];
      };
 
-     emacs = #super.lib.overrideDerivation
-       (super.emacs.override {
-         withGTK3 = false;
+     emacs = super.emacs.override {
          withGTK2 = false;
-         });
-       #(attrs : { patches = super.emacs.patches ++ [ ./patches/emacs-xft.patch ]; }) ;
+         withGTK3 = false;
+         webkitgtk24x = null;
+         withXwidgets = false;
+     };
+     #   (super.emacs.override {
+     #     withGTK3 = false;
+     #     withGTK2 = false;
+     #     })
+     #   (attrs : rec {
+     #     name = "emacs-24.5";
+     #     src = super.fetchurl {
+     #        url = "mirror://gnu//emacs/${name}.tar.xz";
+     #        sha256 = "0kn3rzm91qiswi0cql89kbv6mqn27rwsyjfb8xmwy9m5s8fxfiyx";
+     #     };
+     #     patches = super.emacs.patches ++ [ ./patches/emacs-xft.patch ]; }) ;
 
      pass = super.pass.override {gnupg = self.gnupg21;};
 
