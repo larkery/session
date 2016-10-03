@@ -13,3 +13,6 @@ checkout = git clone 'ssh://lrkry.com:/home/hinton/repos/pass' '.password-store'
 
 [$HOME/.config/vcsh/repo.d/session.git]
 checkout = vcsh clone ssh://git@github.com/larkery/session.git session
+
+[.config/i3]
+checkout = git clone 'git@github.com:larkery/i3.git' 'i3'

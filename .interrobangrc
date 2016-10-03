@@ -1,0 +1,35 @@
+## | InterobangRC
+## |
+## | Lines starting with a # are ignored as comments, but this file is
+## | not processed by a shell interpreter.
+
+
+## BASIC CONFIGURATION
+
+set font = -*-terminus-*-*-*-*-20-*-*-*-*-*-*-*
+set geometry  = top
+set colors	  = #68B0E0 #000000 #48E084 #242424 #64FFAA #484848
+set border    = 1px #BBE0EE
+set bangchar  = :
+set run_hook  = %s
+#set run_hook  = %s || (notify-send "Error: command not found";interrobang)
+set autocomp  = 1
+set list      = true
+set last      = true
+set margin    = -80
+#set shell     = /bin/sh
+#set flags     = -c
+
+## COMMON BANGS AND COMPLETITON OPTIONS
+
+bang t        = urxvt -e %s
+bang w        = xdg-open "http://%s"
+bang m        = urxvt -e man %s
+bang ddg      = xdg-open https://duckduckgo.com/?q=%s
+bang e        = echo "interrobang ignored \"%s\""
+bang ?        = echo "interrobang ignored \"%s\""
+
+tab e         = str="%s%s"; echo "!calc $(echo ${str#\!calc} | bc -l)"
+tab ?         = ignore="%s%s"; awk '/^bang/ {print "!"$2" ";}' ~/.interrobangrc
+
+tab default   = export prefix="%s"; dmenu_path | grep "%s" | awk -v prefix="$prefix" '{print prefix $0}'
