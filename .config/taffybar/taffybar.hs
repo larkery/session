@@ -77,7 +77,7 @@ main = do
   let clock = textClockNew Nothing clockCfg 1
 
   defaultTaffybar defaultTaffybarConfig
-                  { barHeight = 12
+                  { barHeight = 14
                   , barPosition = Bottom
                   , startWidgets = [ xmonadLogNew ]
                   , endWidgets = [ systrayNew
