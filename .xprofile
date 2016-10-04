@@ -14,5 +14,5 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 gpg-connect-agent -q updatestartuptty /bye
 passm -s &
 
-every 15m notmuch new > ~/.mail-log 2>&1 </dev/null &
-reanimate 5s ~/.local/session/scripts/displays >/dev/null 2>&1 </dev/null &
+#every 15m notmuch new > ~/.mail-log 2>&1 </dev/null &
+#reanimate 5s ~/.local/session/scripts/displays >/dev/null 2>&1 </dev/null &
