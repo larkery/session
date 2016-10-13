@@ -1,4 +1,10 @@
 #!/usr/bin/env zsh
+if [ "$1" = "-bg" ]; then
+    shift
+    xdg-open "$@" &
+    disown
+    exit
+fi
 
 export XDG_OPEN_DEPTH=$(( ${XDG_OPEN_DEPTH:-0} + 1 ))
 

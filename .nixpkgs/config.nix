@@ -9,8 +9,6 @@
      emacs = super.emacs.override {
          withGTK2 = false;
          withGTK3 = false;
-         webkitgtk24x = null;
-         withXwidgets = false;
      };
      #   (super.emacs.override {
      #     withGTK3 = false;
