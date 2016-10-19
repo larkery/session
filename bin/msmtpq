@@ -1,4 +1,4 @@
-#!/nix/store/7rilfbkcirzbba8mlfchhmdgaql508fa-bash-4.3-p42/bin/bash 
+#!/usr/bin/env bash
 
 ##--------------------------------------------------------------
 ##

@@ -1,7 +1,7 @@
 source ~/.profile
 
 redshift -l 51.455313:-2.591902 &
-xsettingsd &
+#xsettingsd &
 dunst &
 xss-lock lock &
 xsetroot -solid 'dodgerblue4' -cursor_name left_ptr
