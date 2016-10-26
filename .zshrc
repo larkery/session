@@ -120,7 +120,7 @@ case $TERM in
                 fi
             fi
             _STARTED=""
-            print -Pn "\e]0;%~\a"
+            print -Pn "\e]0;zsh: %~\a"
         }
 
         add-zsh-hook preexec _title_preexec
@@ -140,6 +140,8 @@ alias add='paste -s -d+|bc'
 alias tab='cut -d "	" -f '
 alias ecn='emacsclient -c -n'
 alias assh='autossh -M 0 -o "ServerAliveInterval 45" -o "ServerAliveCountMax 2"'
+
+alias javadebug='java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 
 o() {
     xdg-open "$@" &|
