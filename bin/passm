@@ -1,6 +1,12 @@
 #!/usr/bin/env zsh
 
-zparseopts -D c=clip t=type p=pass f+:=field s=serve q=question l=login h=help
+export DISPLAY=:0
+
+zparseopts -D c=clip t=type p=pass f+:=field a=auto l=login h=help
+
+local -A shares
+shares[cse-bs3-file]=cse.org.uk
+shares[cse-bs3-file.cse.org.uk]=cse.org.uk
 
 getf () {
     echo -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
@@ -11,61 +17,48 @@ getp () {
 }
 
 if [[ ! -z $help ]]; then
-    echo "usage: $0 [-c] [-t] [-p] [-f field] [-s] [-q] [-l]"
+    echo "usage: $0 [-c] [-t] [-p] [-f field] [-l] [-a host share]"
     echo "	-c copy fields to clipboard"
     echo "	-t type fields in with xdotool"
     echo "	-p operate on password"
     echo "	-f <field> operate on <field>"
-    echo "	-s serve autofs requests"
-    echo "	-q make autofs request"
+    echo "  -a produce a smb credentials file"
     echo "	-l do a login"
     exit 0
 fi
 
-if [[ ! -z $serve ]]; then
-    uid=$(id -u)
-    mkdir -p /run/user/$uid/autofs
-    sock="/run/user/$uid/autofs/socket"
-    [[ -S $sock ]] && exit 0
-    echo "serve on $sock"
-    exec socat UNIX-LISTEN:$sock,fork,reuseaddr EXEC:"passm -q"
-fi
+if [[ ! -z $auto ]]; then
+    host=$1
+    share=$2
+    data=""
+    E="1"
+    if (( ${+shares[$host/$share]} )); then
+        data=$(pass show $shares[$host/$share])
+        E=$?
+    elif (( ${+shares[$host]} )); then
+        data=$(pass show $shares[$host])
+        E=$?
+    fi
+    if [[ $E -ne 0 ]]; then
+        notify -u critical "network mount" "$host/$share - returned $E"
+        exit 1
+    else
+        notify "network mount" "$host/$share"
+    fi
 
-if [[ ! -z $question ]]; then
-    # read mappings for shares from file?
-    local -A shares
-    shares[cse-bs3-file]=cse.org.uk
-    shares[cse-bs3-file.cse.org.uk]=cse.org.uk
-    while read host share cred; do
-        data=""
-        E="1"
-        if (( ${+shares[$host/$share]} )); then
-            data=$(pass show $shares[$host/$share])
-            E=$?
-        elif (( ${+shares[$host]} )); then
-            data=$(pass show $shares[$host])
-            E=$?
-        fi
-        if [[ $E -ne 0 ]]; then
-            notify -u critical "network mount" "$host/$share - returned $E"
-        else
-            notify "network mount" "$host/$share"
-        fi
-        # we want to echo the contents of a credentials file
-        # which the caller can use how they like.
-        if [[ ! -z $data ]]; then
-            username=$(getf "$data" "smb-username")
-            : ${username:=$(getf "$data" "username")}
-            domain=$(getf "$data" "smb-domain")
-            password=$(getp "$data")
-            out=""
-            [[ ! -z "$username" ]] && out="username=${username}"
-            [[ ! -z "$password" ]] && out="$out\npassword=${password}"
-            [[ ! -z "$domain" ]] && out="$out\ndomain=${domain}"
-            echo "$out" > "$cred"
-        fi
-        exit 0
-    done
+    if [[ ! -z $data ]]; then
+        username=$(getf "$data" "smb-username")
+        : ${username:=$(getf "$data" "username")}
+        domain=$(getf "$data" "smb-domain")
+        password=$(getp "$data")
+        out=""
+        [[ ! -z "$username" ]] && out="username=${username}"
+        [[ ! -z "$password" ]] && out="$out\npassword=${password}"
+        [[ ! -z "$domain" ]] && out="$out\ndomain=${domain}"
+        echo "$out"
+    fi
+
+    exit 0
 fi
 
 data=$(pass show "$1")

@@ -1,7 +1,6 @@
 source ~/.profile
 
 redshift -l 51.455313:-2.591902 &
-#xsettingsd &
 dunst &
 xss-lock lock &
 xsetroot -solid 'dodgerblue4' -cursor_name left_ptr
@@ -12,4 +11,3 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 export _JAVA_AWT_WM_NONREPARENTING=1
 
 gpg-connect-agent -q updatestartuptty /bye
-passm -s &
