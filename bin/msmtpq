@@ -84,7 +84,7 @@ Q=~/.msmtp.queue
 ##     (doing so would be inadvisable under most conditions, however)
 ##
 ## the queue log file - modify (or comment out) to taste  (but no quotes !!)
-LOG=~/log/msmtp.queue.log
+## LOG=~/log/msmtp.queue.log
 ## ======================================================================================
 
 ## msmtpq can use the following environment variables :

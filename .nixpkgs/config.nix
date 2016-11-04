@@ -11,6 +11,8 @@
          withGTK3 = false;
      };
 
+     emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
+
      pass = super.pass.override {gnupg = self.gnupg21;};
    };
 }
