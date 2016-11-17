@@ -4,7 +4,7 @@ redshift -l 51.455313:-2.591902 &
 dunst &
 xss-lock lock &
 setroot --restore
-compton --config /dev/null &
+
 setxkbmap &
 
 echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
