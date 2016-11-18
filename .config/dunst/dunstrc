@@ -1,12 +1,15 @@
 [global]
-    font = Monospace 10
+    font = Sans 14
     allow_markup = yes
     sort = yes
     indicate_hidden = yes
     alignment = left
     browser = qb
     word_wrap = yes
-    geometry = 0x0-2+2
+    show_age_threshold = 120
+    geometry = "500x5-30+20"
+    shrink = no
+    idle_threshold = 240
     show_indicators = yes
     separator_height = 0
     padding = 4
@@ -15,8 +18,8 @@
     follow = mouse
 
 [frame]
-    width = 1
-    color = "#555555"
+    width = 2
+    color = "#ffffff"
 
 [shortcuts]
     close = ctrl+space
@@ -25,22 +28,18 @@
     context = ctrl+shift+period
 
 [urgency_low]
-    background = "#333333"
-    foreground = "#aaaaaa"
-    timeout = 5
+    # IMPORTANT: colors have to be defined in quotation marks.
+    # Otherwise the '#' and following  would be interpreted as a comment.
+    background = "#222222"
+    foreground = "#ffffff"
+    timeout = 10
 
 [urgency_normal]
-    background = "#333333"
-    foreground = "#FFFFFF"
+    background = "#285577"
+    foreground = "#ffffff"
     timeout = 10
 
 [urgency_critical]
-    background = "#801515"
-    foreground = "#D46A6A"
-    timeout = 0
-
-[urgent windows]
-    appname = urgency
-    background = "#008b8b"
+    background = "#900000"
     foreground = "#ffffff"
-    timeout = 5
+    timeout = 0

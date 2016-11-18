@@ -2,8 +2,8 @@ source ~/.profile
 
 redshift -l 51.455313:-2.591902 &
 dunst &
-xss-lock lock & -cursor_name circle
-xsetroot -solid black
+xss-lock lock &
+xsetroot -solid black -cursor_name circle
 
 setxkbmap &
 
