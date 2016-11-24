@@ -6,10 +6,10 @@
        patches = [ ./patches/dmenu-number-output.patch ];
      };
 
-#     emacs25 = super.emacs25.override {
-#         withGTK2 = false;
-#         withGTK3 = false;
-#     };
+     emacs25 = super.emacs25.override {
+         withGTK2 = false;
+         withGTK3 = false;
+     };
 
      emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
 
