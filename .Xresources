@@ -2,6 +2,9 @@
 
 URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
+Xcursor.theme: Vanilla-DMZ-AA
+Xcursor.size: 16
+
 #ifdef LIGHT
 XTerm*background: #eeeeec
 XTerm*foreground: #2e3436
@@ -23,7 +26,6 @@ URxvt*saveLines: 5000
 
 URxvt*termName: rxvt-256color
 URxvt*scrollBar: false
-
 
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
 XTerm*termName: XTerm-256color

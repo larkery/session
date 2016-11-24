@@ -14,6 +14,4 @@ fi
 if [ $NEW -ne 0 ]
 then
     notify "$NEW new mails" "$SUB"
-else
-    notify -u low "No new mails"
 fi
