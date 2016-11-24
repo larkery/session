@@ -6,7 +6,7 @@ IMAPAccount cse
    SSLType STARTTLS
    SystemCertificates yes
    AuthMechs LOGIN
-   PassCmd "passm -p cse.org.uk"
+   PassCmd "passm -p webmail.cse.org.uk"
 
 IMAPStore cse-remote
     Account cse
