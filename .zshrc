@@ -105,6 +105,15 @@ fi
 autoload -Uz add-zsh-hook
 
 case $TERM in
+    eterm*)
+        _eterm_update() {
+            printf '\033AnSiTc %s\n' "$PWD"
+        }
+        printf '\033AnSiTu %s\n' "$USER"
+        printf '\033AnSiTh %s\n' "$(hostname)"
+        _eterm_update
+        add-zsh-hook precmd _eterm_update
+        ;;
     (rxvt|xterm)*)
         _title_preexec() {
             _STARTED=$(date +%s)
