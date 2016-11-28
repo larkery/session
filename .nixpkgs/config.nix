@@ -14,5 +14,7 @@
      emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
 
      pass = super.pass.override {gnupg = self.gnupg21;};
+
+     ripright = (super.callPackage ./ripright.nix {});
    };
 }
