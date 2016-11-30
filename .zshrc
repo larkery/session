@@ -113,6 +113,9 @@ case $TERM in
         printf '\033AnSiTh %s\n' "$(hostname)"
         _eterm_update
         add-zsh-hook precmd _eterm_update
+
+        fpath=( $SESSION_DIR/zsh/eterm "${fpath[@]}" )
+        autoload -Uz $SESSION_DIR/zsh/eterm/*(:t)
         ;;
     (rxvt|xterm)*)
         _title_preexec() {
@@ -262,3 +265,5 @@ alias -g NF='*(.om[1])' # newest file
 alias repl='rlwrap with '
 
 gpg-connect-agent -q updatestartuptty /bye 2>&1 >/dev/null
+
+set -K # disable stupid exclamation mark
