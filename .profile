@@ -1,6 +1,5 @@
 export BROWSER=xdg-open
 export SOURCED_PROFILE=1
-export SESSION_DIR="$HOME/.local/session"
 export MAIL_DIR="$HOME/.mail"
 export ALTERNATE_EDITOR=""
 export EDITOR="emacsclient"

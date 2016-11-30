@@ -4,7 +4,7 @@ NEW=$(notmuch count -- tag:new and not from:me)
 SUB=$(notmuch search --format=json -- tag:new and not from:me | jq -j '.[0:5]|.[]|.subject+"\n"')
 notmuch tag -new -- tag:new
 
-"$SESSION_DIR/scripts/refile" >/dev/null
+$MAIL_DIR/.notmuch/hooks/refile >/dev/null
 
 if [ ! "$?" -eq 0 ]
 then

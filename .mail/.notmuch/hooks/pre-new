@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-CHANGED=("${(@f)$($SESSION_DIR/scripts/refile)}")
+CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 CHANGED+=(fastmail-inbox)
 CHANGED+=(cse:Inbox)
 CHANGED+=(cse:JIRA)
@@ -11,7 +11,7 @@ then
     echo "ERROR: refiler was not happy"
 fi
 
-WATCH="$HOME/.mail/last-sync"
+WATCH="$MAIL_DIR/last-sync"
 
 if [[ -n "$FULL" ]] || [[ ! -e "$WATCH" ]] || [[ $(date +%s -r "$WATCH") -lt $(date +%s --date="3 hours ago") ]]
 then

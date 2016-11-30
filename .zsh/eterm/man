@@ -1,0 +1,8 @@
+man () {
+   if [[ "$1" = "configuration.nix" ]]; then
+      command man "$@"
+   else
+      # TODO handle sections?
+      emacsclient -e "(woman \"$1\")"
+   fi
+}
