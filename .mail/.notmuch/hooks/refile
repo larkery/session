@@ -173,7 +173,7 @@ def maildir_specific_actions(maildir, archive, trash):
         ('tag:inbox and not folder:"%s/Inbox"' % (maildir), remove_tag('inbox')),
         ('tag:inbox and folder:"%s/Sent Items"' % (maildir), remove_tag('inbox')),
         ('folder:"%s/Inbox" AND NOT tag:inbox' % (maildir), refile_to('%s/%s' % (maildir, archive))),
-        ('folder:"%s/%s"' % (maildir, trash), S([remove_tag('inbox'), add_tag('deleted')])),
+        ('not tag:deleted and folder:"%s/%s"' % (maildir, trash), S([remove_tag('inbox'), add_tag('deleted')])),
         ('tag:deleted AND NOT folder:"%s/%s"' % (maildir, trash), refile_to('%s/%s' % (maildir, trash)))
     ]
 
@@ -183,7 +183,7 @@ def maildir_specific_actions(maildir, archive, trash):
     return restrict('path:%s/**' % (maildir), actions)
 
 actions = [ ('tag:deleted and date:..1w', delete) ] + \
-  maildir_specific_actions('cse', 'Archives', 'Trash') + \
+  maildir_specific_actions('cse', 'Archives', 'Deleted Items') + \
   maildir_specific_actions('fastmail', 'Archive', 'Trash') + \
   [ ('path:cse/** AND subject:EXS- AND NOT tag:EXS',
      S([add_regex_tag(r"(EXS-\d+)"), add_tag('EXS')])) ]

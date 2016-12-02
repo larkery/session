@@ -18,7 +18,7 @@ MaildirStore cse-local
 Channel cse
     Master :cse-remote:
     Slave :cse-local:
-    Patterns * !Deleted\ Items
+    Patterns *
     SyncState *
     Create Both
     Expunge Both

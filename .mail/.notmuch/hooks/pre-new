@@ -1,9 +1,8 @@
 #!/usr/bin/env zsh
 
-CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
+CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile $VERBOSE)}")
 CHANGED+=(fastmail-inbox)
 CHANGED+=(cse:Inbox)
-CHANGED+=(cse:JIRA)
 typeset -U CHANGED
 
 if [ ! "$?" -eq 0 ]
@@ -21,6 +20,10 @@ then
 else
     echo sync $CHANGED
     E=$(mbsync -q $CHANGED 2>&1)
+fi
+
+if [[ -n "$VERBOSE" ]]; then
+    echo "$E"
 fi
 
 if [ ! "$?" -eq 0 ]
