@@ -1,0 +1,19 @@
+#!/bin/sh
+export PATH="$PATH:$HOME/.nix-profile/bin"
+battery_level=`acpi -b | grep -P -o '[0-9]+(?=%)'`
+STATUS=$(cat /sys/class/power_supply/AC*/online)
+if [ $battery_level -le 10 ] && [ $STATUS == "0" ]
+then
+    export DISPLAY=:0
+    tr=$(acpi -b | awk -F ',' '{print $3}')
+    cmd=$(echo -e "^bg(red)^fg(white)LOW BATTERY^fg()^bg() $battery_level%$tr
+ignore
+hibernate
+suspend" |
+      dzen2 -p -m -l 3 -e 'button1=menuprint,exit;button2=exit;button3=exit;entertitle=uncollapse,unhide;leaveslave=collapse;')
+    case $cmd in
+         hibernate|suspend)
+            systemctl $cmd
+            ;;
+    esac
+fi
