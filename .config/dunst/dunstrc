@@ -1,14 +1,13 @@
 [global]
-    font = Sans 14
+    font = Sans 11
     allow_markup = yes
     sort = yes
     indicate_hidden = yes
-    alignment = left
+    alignment = center
     browser = qb
     word_wrap = no
     show_age_threshold = 120
     shrink = no
-    geometry = 0x0+0-0
     idle_threshold = 240
     show_indicators = yes
     separator_height = 0
@@ -32,12 +31,12 @@
     # Otherwise the '#' and following  would be interpreted as a comment.
     background = "#222222"
     foreground = "#777777"
-    timeout = 10
+    timeout = 4
 
 [urgency_normal]
     background = "#285577"
     foreground = "#ffffff"
-    timeout = 10
+    timeout = 4
 
 [urgency_critical]
     background = "#900000"
