@@ -1,3 +1,10 @@
+let home = get_home_directory();
+home.append(".conkerorrc");
+home.append("index.html");
+homepage = home.path;
+
+editor_shell_command = "emacsclient -c";
+
 browser_default_open_target = OPEN_NEW_WINDOW;
 
 require("clicks-in-new-buffer.js");
@@ -109,3 +116,4 @@ minibuffer.prototype.clear = function () {
 };
 
 add_hook("window_initialize_hook", function (I) {I.window.minibuffer.hide();});
+define_key(content_buffer_normal_keymap,"C-g","unfocus");
