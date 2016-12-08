@@ -70,18 +70,24 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>'
 
 # prompt garble
 
-PROMPTSYM="$"
-PROMPT='$(_cd_destination)'"\${vcs_info_msg_0_}
-%B%(?,,%F{red}[%?]%f )$PROMPTSYM%b "
+case $TERM in
+    dumb)
+        PROMPT='%~ %(?,,[%?] )$ '
+    ;;
+    *)
+        PROMPT='$(_cd_destination)'"\${vcs_info_msg_0_}
+%B%(?,,%F{red}[%?]%f )$%b "
 
-_cd_destination() {
-    if [[ "$BUFFER" =~ '^\.\./?' ]]; then
-        P=$(realpath -sLm "${PWD}/$BUFFER")
-        echo "-> $fg[cyan]$P$reset_color <-"
-    else
-        print -P '%B%~%b'
-    fi
-}
+        _cd_destination() {
+            if [[ "$BUFFER" =~ '^\.\./?' ]]; then
+                P=$(realpath -sLm "${PWD}/$BUFFER")
+                echo "-> $fg[cyan]$P$reset_color <-"
+            else
+                print -P '%B%~%b'
+            fi
+        }
+        ;;
+esac
 
 autoload -Uz vcs_info
 zstyle ':vcs_info:*' enable git svn hg
