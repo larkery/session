@@ -5,7 +5,7 @@ homepage = home.path;
 
 editor_shell_command = "emacsclient -c";
 
-browser_default_open_target = OPEN_NEW_WINDOW;
+// browser_default_open_target = OPEN_NEW_WINDOW; - breaks stuff
 
 require("clicks-in-new-buffer.js");
 
@@ -17,7 +17,7 @@ cwd.append("dl");
 
 url_completion_use_history = true;
 
-//mode_line_mode(false);
+mode_line_mode(true);
 
 add_hook("mode_line_hook", mode_line_adder(buffer_count_widget), true);
 
@@ -49,9 +49,6 @@ function create_selection_search(webjump, key) {
 }
 
 create_selection_search("duckduckgo", "w");
-
-
-
 
 var minibuffer_autohide_message_timeout = 3000;
 var minibuffer_autohide_timer = null;
