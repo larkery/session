@@ -6,7 +6,7 @@
        patches = [ ./patches/dmenu-number-output.patch ];
      };
 
-     emacs25 = super.emacs25.override {
+     emacs25-nogtk = super.emacs25.override {
          withGTK2 = false;
          withGTK3 = false;
      };
@@ -16,5 +16,7 @@
      pass = super.pass.override {gnupg = self.gnupg21;};
 
      ripright = (super.callPackage ./ripright.nix {});
+
+     st-xresources = (super.callPackage ./st-xresources.nix {});
    };
 }

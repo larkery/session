@@ -12,7 +12,7 @@ autoload -Uz $ZSH/functions/*(:t)
 
 # options
 setopt autocd nobeep extendedglob nomatch prompt_subst menu_complete re_match_pcre
-setopt longlistjobs checkjobs notify
+setopt longlistjobs checkjobs
 unsetopt notify
 
 autoload -U zutil
@@ -110,41 +110,19 @@ fi
 
 autoload -Uz add-zsh-hook
 
+add-zsh-hook preexec _start_timer
+add-zsh-hook precmd _stop_timer
+add-zsh-hook precmd _set_title
+add-zsh-hook preexec _set_title
+
 case $TERM in
     eterm*)
-        _eterm_update() {
-            printf '\033AnSiTc %s\n' "$PWD"
-        }
-        printf '\033AnSiTu %s\n' "$USER"
-        printf '\033AnSiTh %s\n' "$(hostname)"
-        _eterm_update
-        add-zsh-hook precmd _eterm_update
-
         if [[ -d $ZSH/eterm ]]; then
-          fpath=( $ZSH/eterm "${fpath[@]}" )
-          autoload -Uz $ZSH/eterm/*(:t)
+            fpath=( $ZSH/eterm "${fpath[@]}" )
+            autoload -Uz $ZSH/eterm/*(:t)
+            _eterm_update
+            add-zsh-hook precmd _eterm_update
         fi
-        ;;
-    (rxvt|xterm)*)
-        _title_preexec() {
-            _STARTED=$(date +%s)
-            printf "\033];%s\07" "$1"
-        }
-
-        _timer_precmd() {
-            if ! [ -z "$_STARTED" ]; then
-                NOW=$(date +%s)
-                DELTA=$(($NOW - $_STARTED))
-                if [ $DELTA -gt 5 ]; then
-                    echo -e "\a$DELTA seconds"
-                fi
-            fi
-            _STARTED=""
-            print -Pn "\e]0;zsh: %~\a"
-        }
-
-        add-zsh-hook preexec _title_preexec
-        add-zsh-hook precmd _timer_precmd
         ;;
 esac
 
@@ -159,7 +137,6 @@ alias la='l -a'
 alias add='paste -s -d+|bc'
 alias tab='cut -d "	" -f '
 alias ecn='emacsclient -c -n'
-alias assh='autossh -M 0 -o "ServerAliveInterval 45" -o "ServerAliveCountMax 2"'
 
 alias javadebug='java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 

@@ -1,34 +1,19 @@
 #define FONT Monospace-11
 
+st.font: Monospace:size=14
+st.bold_font: 1
+
 URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
 Xcursor.theme: Vanilla-DMZ-AA
 Xcursor.size: 16
 
-#ifdef LIGHT
-XTerm*background: #eeeeec
-XTerm*foreground: #2e3436
-URxvt*background: #eeeeec
-URxvt*foreground: #2e3436
-URxvt*cursorColor: black
-XTerm*cursorColor: black
-#else
-XTerm*background: #2e3436
-XTerm*foreground: #eeeeec
-URxvt*background: #2e3436
-URxvt*foreground: #eeeeec
-URxvt*cursorColor: white
-XTerm*cursorColor: white
-#endif
-
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
 
-URxvt*termName: rxvt-256color
 URxvt*scrollBar: false
 
 XTerm*charClass: 33:48,37:48,45-47:48,38:48,58:48
-XTerm*termName: XTerm-256color
 XTerm*faceName: FONT
 XTerm*font: 7x13
 XTerm*bellIsUrgent: true
@@ -55,58 +40,11 @@ Emacs*FontBackend: xft
 Emacs*font: FONT
 Emacs*pointerColor: #ffffff
 
-
-! black
-*color0: #000000
-
-! bright_black
-*color8: #272727
-
-! red
-*color1: #d76953
-
-! bright_red
-*color9: #e39787
-
-! green
-*color2: #53d769
-
-! bright_green
-*color10: #87e397
-
-! yellow
-*color3: #c1d753
-
-! bright_yellow
-*color11: #d4e387
-
-! blue
-*color4: #6953d7
-
-! bright_blue
-*color12: #9787e3
-
-! magenta
-*color5: #d753c1
-
-! bright_magenta
-*color13: #e387d4
-
-! cyan
-*color6: #53c1d7
-
-! bright_cyan
-*color14: #87d4e3
-
-! white
-*color7: #d8d8d8
-
-! bright_white
-*color15: #ffffff
-
 xclock*width: 100
 xclock*height: 100
 xclock*chime: true
 
 xclock*hourColor: red
 xclock*minuteColor: red
+
+#include ".emacs-xresources"

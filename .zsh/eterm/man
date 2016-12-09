@@ -3,6 +3,7 @@ man () {
       command man "$@"
    else
       # TODO handle sections?
-      emacsclient -e "(woman \"$1\")"
+      # TODO is woman better?
+      emacsclient -e "(man \"$1\")"
    fi
 }
