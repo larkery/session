@@ -11,5 +11,8 @@ checkout = git clone 'ssh://lrkry.com/home/hinton/repos/notes' 'notes'
 [$HOME/.password-store]
 checkout = git clone 'ssh://lrkry.com:/home/hinton/repos/pass' '.password-store'
 
+[$HOME/.zsh]
+checkout = git clone 'ssh://git@github.com/larkery.zsh.git' '.zsh'
+
 [$HOME/.config/vcsh/repo.d/session.git]
 checkout = vcsh clone ssh://git@github.com/larkery/session.git session
