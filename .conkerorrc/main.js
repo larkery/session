@@ -96,6 +96,9 @@ minibuffer.prototype.show = function (str, force, hide_after_timeout) {
     old_minibuffer_show.call(this, str, force);
     if (minibuffer_autohide_timer)
         timer_cancel(minibuffer_autohide_timer);
+    hide_after_timeout = hide_after_timeout ||
+        (hide_after_timeout == null && this.input_element.value == '');
+
     if (hide_after_timeout || hide_after_timeout == null) {
         minibuffer_autohide_timer = call_after_timeout(
             function (I) {self.hide();}, minibuffer_autohide_message_timeout);
