@@ -40,11 +40,9 @@ Emacs*FontBackend: xft
 Emacs*font: FONT
 Emacs*pointerColor: #ffffff
 
-xclock*width: 100
-xclock*height: 100
 xclock*chime: true
-
-xclock*hourColor: red
-xclock*minuteColor: red
+xclock*geometry: 80x80-5-40
+xclock*Foreground:white
+xclock*Background:black
 
 #include ".emacs-xresources"

@@ -16,7 +16,7 @@
     format = "<b>%s:</b>%b %p"
     follow = mouse
 
-    geometry=0x0-10+10
+    geometry=0x0+10-10
 
 [frame]
     width = 1
