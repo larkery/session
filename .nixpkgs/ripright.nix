@@ -1,4 +1,4 @@
-{stdenv, pkgconfig, flac, curl, fetchurl, cdparanoia, imagemagick, libdiscid}:
+{stdenv, pkgconfig, flac, curl, fetchurl, cdparanoia, imagemagick, libdiscid, libcddb, automake, autoconf}:
 
 stdenv.mkDerivation rec {
    version = "0.11";
@@ -8,5 +8,5 @@ stdenv.mkDerivation rec {
       sha256 = "1dvnggjsfp5gc0smqcgbvq3zn2h81aqm8ydg9giw2sdq61q9p1hm";
    };
 
-   buildInputs = [pkgconfig flac curl cdparanoia imagemagick libdiscid];
+   buildInputs = [pkgconfig flac curl cdparanoia imagemagick libdiscid libcddb automake autoconf];
 }
