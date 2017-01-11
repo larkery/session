@@ -1,0 +1,70 @@
+From 8eeea51c0ba68a501901db5e655f6e0cac16618e Mon Sep 17 00:00:00 2001
+From: Philip <pipcet@gmail.com>
+Date: Thu, 27 Aug 2015 18:07:10 +0000
+Subject: [PATCH] Allow minibuffer to shrink to zero lines.
+
+---
+ lisp/window.el | 4 ++--
+ src/window.c   | 9 ++++-----
+ 2 files changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/lisp/window.el b/lisp/window.el
+index 65b4ef0..4f3daf4 100644
+--- a/lisp/window.el
++++ b/lisp/window.el
+@@ -2488,8 +2488,8 @@ as small) as possible, but don't signal an error."
+ 	       (window-min-size root nil nil t))))
+       ;; Sanitize DELTA.
+       (cond
+-       ((<= (+ height delta) 0)
+-	(setq delta (- (frame-char-height (window-frame window)) height)))
++       ((< (+ height delta) 0)
++	(setq delta (- height)))
+        ((> delta min-delta)
+ 	(setq delta min-delta)))
+ 
+diff --git a/src/window.c b/src/window.c
+index f6fe0cd..dd42cda 100644
+--- a/src/window.c
++++ b/src/window.c
+@@ -3710,7 +3710,7 @@ window_resize_check (struct window *w, bool horflag)
+        `window-safe-min-height' (1) which are defined in window.el.  */
+     return (XINT (w->new_pixel) >= (horflag
+ 				    ? (2 * FRAME_COLUMN_WIDTH (f))
+-				    : FRAME_LINE_HEIGHT (f)));
++				    : 0));
+ }
+ 
+ 
+@@ -4546,7 +4546,7 @@ shrink_mini_window (struct window *w, bool pixelwise)
+   eassert (MINI_WINDOW_P (w));
+ 
+   height = pixelwise ? w->pixel_height : w->total_lines;
+-  unit = pixelwise ? FRAME_LINE_HEIGHT (f) : 1;
++  unit = 0;
+   if (height > unit)
+     {
+       root = FRAME_ROOT_WINDOW (f);
+@@ -4561,9 +4561,9 @@ shrink_mini_window (struct window *w, bool pixelwise)
+ 
+ 	  /* Shrink the mini-window.  */
+ 	  w->top_line = r->top_line + r->total_lines;
+-	  w->total_lines = 1;
++	  w->total_lines = 0;
+ 	  w->pixel_top = r->pixel_top + r->pixel_height;
+-	  w->pixel_height = FRAME_LINE_HEIGHT (f);
++	  w->pixel_height = 0;
+ 	  /* Enforce full redisplay of the frame.  */
+ 	  /* FIXME: Shouldn't window--resize-root-window-vertically do it?  */
+ 	  fset_redisplay (f);
+@@ -4597,7 +4597,6 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
+   r = XWINDOW (FRAME_ROOT_WINDOW (f));
+   height = r->pixel_height + w->pixel_height;
+   if (window_resize_check (r, false)
+-      && XINT (w->new_pixel) > 0
+       && height == XINT (r->new_pixel) + XINT (w->new_pixel))
+     {
+       block_input ();
+-- 
+2.5.0
+
