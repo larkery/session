@@ -9,8 +9,6 @@ editor_shell_command = "emacsclient -c";
 
 require("clicks-in-new-buffer.js");
 
-external_content_handlers.set("*", "xdg-open");
-
 cwd = get_home_directory();
 cwd.append("temp");
 cwd.append("dl");

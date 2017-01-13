@@ -1,9 +1,9 @@
 [global]
-    font = Terminus 14
+    font = Terminus 9
     allow_markup = yes
     sort = yes
     indicate_hidden = yes
-    alignment = right
+    alignment = left
     browser = xdg-open
     word_wrap = no
     show_age_threshold = 120
@@ -11,12 +11,12 @@
     idle_threshold = 240
     show_indicators = yes
     separator_height = 0
-    padding = 4
+    padding = 3
     horizontal_padding = 8
     format = "<b>%s:</b>%b %p"
     follow = mouse
 
-    geometry=0x0+10-10
+    geometry=x0+0-0
 
 [frame]
     width = 1
@@ -35,7 +35,7 @@
 [urgency_normal]
     timeout = 4
     foreground="#ffffff"
-    background="#333333"
+    background="#aa3333"
 
 [urgency_critical]
     timeout = 0
