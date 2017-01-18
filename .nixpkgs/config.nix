@@ -24,5 +24,7 @@
      st-xresources = (super.callPackage ./st-xresources.nix {});
 
      gdal = (super.callPackage ./gdal.nix {});
+
+     grass72 = (super.callPackage ./grass.nix {});
    };
 }
