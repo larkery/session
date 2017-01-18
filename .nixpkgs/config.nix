@@ -28,5 +28,7 @@
      rEnv = super.rWrapper.override {
          packages = with self.rPackages; [ ggplot2 dplyr ];
      };
+
+     grass72 = (super.callPackage ./grass.nix {});
    };
 }
