@@ -24,5 +24,9 @@
      st-xresources = (super.callPackage ./st-xresources.nix {});
 
      gdal = (super.callPackage ./gdal.nix {});
+
+     rEnv = super.rWrapper.override {
+         packages = with self.rPackages; [ ggplot2 dplyr ];
+     };
    };
 }
