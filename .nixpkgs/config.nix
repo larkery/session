@@ -30,5 +30,7 @@
      };
 
      grass72 = (super.callPackage ./grass.nix {});
+
+     abunchoftags = (super.callPackage ./abunchoftags.nix {});
    };
 }
