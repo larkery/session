@@ -45,4 +45,4 @@ xclock*geometry: 80x80-5-40
 xclock*Foreground:white
 xclock*Background:black
 
-#include ".emacs-xresources"
+#include ".Xresources_emacs"
