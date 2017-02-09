@@ -1,6 +1,6 @@
 let home = get_home_directory();
 home.append(".conkerorrc");
-home.append("index.html");
+home.append("home.html");
 homepage = home.path;
 
 editor_shell_command = "emacsclient -c";
@@ -28,25 +28,20 @@ read_url_handler_list = [read_url_make_default_webjump_handler("duckduckgo")];
 
 set_protocol_handler("mailto", find_file_in_path("xdg-open"));
 
-function create_selection_search(webjump, key) {
-    interactive(webjump+"-selection-search",
-                "Search " + webjump + " with selection contents",
-                "find-url-new-buffer",
-                $browser_object = function (I) {
-                    return webjump + " " + I.buffer.top_frame.getSelection();});
-    define_key(content_buffer_normal_keymap, key.toUpperCase(), webjump + "-selection-search");
+interactive("open-selection",
+            "Open selected URL, or search with default thingy",
+            "find-url",
+            $browser_object =
+            function (I) {
+                var sel = I.buffer.top_frame.getSelection();
+                if (possibly_valid_url(sel)) {
+                    return ""+sel;
+                } else {
+                    return "duckduckgo "+sel;
+                }
+            });
 
-    interactive("prompted-"+webjump+"-search", null,
-                function (I) {
-                    var term = yield I.minibuffer.read_url($prompt = "Search "+webjump+":",
-                                                           $initial_value = webjump+" ",
-                                                           $select = false);
-                    browser_object_follow(I.buffer, FOLLOW_DEFAULT, term);
-                });
-    define_key(content_buffer_normal_keymap, key, "prompted-" + webjump + "-search");
-}
-
-create_selection_search("duckduckgo", "w");
+define_key(content_buffer_normal_keymap, "w", "open-selection");
 
 var minibuffer_autohide_message_timeout = 3000;
 var minibuffer_autohide_timer = null;
