@@ -7,6 +7,15 @@ define_browser_object_class(
         yield co_return (result);
     });
 
+define_browser_object_class(
+    "bookmark-url", null,
+    function (I, prompt) {
+        check_buffer (I.buffer, content_buffer);
+        var result = yield I.buffer.window.minibuffer.read_url(
+            $prompt = prompt,  $use_webjumps = false, $use_history = false, $use_bookmarks = true);
+        yield co_return (result);
+    });
+
 interactive("find-url-from-history",
             "Find a page from history in the current buffer",
             "find-url",
@@ -19,3 +28,10 @@ interactive("find-url-from-history-new-buffer",
 
 define_key(content_buffer_normal_keymap, "h", "find-url-from-history-new-buffer");
 define_key(content_buffer_normal_keymap, "H", "find-url-from-history");
+
+interactive("find-bookmark",
+            "Find a bookmark in the current buffer",
+            "find-url",
+            $browser_object = browser_object_bookmark_url);
+
+define_key(content_buffer_normal_keymap, "M-b", "find-bookmark");
