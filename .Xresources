@@ -1,8 +1,5 @@
 #define FONT Monospace-11
 
-st.font: Monospace:size=14
-st.bold_font: 1
-
 URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
 Xcursor.theme: Vanilla-DMZ-AA
@@ -10,6 +7,12 @@ Xcursor.size: 16
 
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
+URxvt*scrollWithBuffer: True
+URxvt*scrollTtyOutput: False
+URxvt*scrollTtyKeypress: True
+URxvt*secondaryScreen: True
+URxvt*secondaryScroll: False
+URxvt*secondaryWheel: True
 
 URxvt*scrollBar: false
 
