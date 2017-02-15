@@ -7,6 +7,7 @@ Xcursor.size: 16
 
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
+
 URxvt*scrollWithBuffer: True
 URxvt*scrollTtyOutput: False
 URxvt*scrollTtyKeypress: True
