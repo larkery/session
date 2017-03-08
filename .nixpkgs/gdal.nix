@@ -4,6 +4,7 @@
 , xercesc
 , netcdf, hdf5 , curl
 , libspatialite, sqlite
+, jdk, swig
 , netcdfSupport ? true
  }:
 
@@ -16,7 +17,7 @@ composableDerivation.composableDerivation {} (fixed: rec {
     sha256 = "55fc6ffbe76e9d2e7e6cf637010e5d4bba6a966d065f40194ff798544198236b";
   };
 
-  buildInputs = [ unzip libjpeg libtiff libpng proj openssl xercesc sqlite libspatialite ]
+  buildInputs = [ unzip libjpeg libtiff libpng proj openssl xercesc sqlite libspatialite jdk swig ]
   ++ (with pythonPackages; [ python numpy wrapPython ])
   ++ (stdenv.lib.optionals netcdfSupport [ netcdf hdf5 curl ]);
 
@@ -39,8 +40,26 @@ composableDerivation.composableDerivation {} (fixed: rec {
     "--with-python"               # optional
     "--with-static-proj4=${proj}" # optional
     "--with-geos=${geos}/bin/geos-config"# optional
+    "--with-java=${jdk}"
     (if netcdfSupport then "--with-netcdf=${netcdf}" else "")
   ];
+
+  # the build phase needs amending to build the swig java wrapper
+  # as presumably does the install phase
+
+  buildPhase = ''
+  make
+  pushd gdal/swig/java
+  make
+  popd
+  '';
+
+  installPhase = ''
+  make install
+  pushd gdal/swig/java
+  make install
+  popd
+  '';
 
   preBuild = ''
     substituteInPlace swig/python/GNUmakefile \

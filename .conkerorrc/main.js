@@ -1,3 +1,5 @@
+hint_digits="qwerasdfzxcv";
+
 let home = get_home_directory();
 home.append(".conkerorrc");
 home.append("home.html");

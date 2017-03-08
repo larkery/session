@@ -35,3 +35,25 @@ interactive("find-bookmark",
             $browser_object = browser_object_bookmark_url);
 
 define_key(content_buffer_normal_keymap, "M-b", "find-bookmark");
+
+function history_clear () {
+    var history = Cc["@mozilla.org/browser/nav-history-service;1"]
+        .getService(Ci.nsIBrowserHistory);
+    history.removeAllPages();
+}
+
+interactive("history-clear",
+            "Clear the history.",
+            history_clear);
+
+function history_clear_host (host) {
+    var history = Cc["@mozilla.org/browser/nav-history-service;1"]
+        .getService(Ci.nsIBrowserHistory);
+    history.removePagesFromHost(host, true);
+}
+
+interactive("history-clear-host",
+            "Remove a specific site from the history",
+            function(I) {
+                history_clear_host(yield I.minibuffer.read($prompt = "host: "));
+            });
