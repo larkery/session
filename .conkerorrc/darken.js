@@ -1,7 +1,7 @@
 var dark_stylesheet = make_css_data_uri(
     ['* { background: #3f3f3f !important; color: #e5e2ce !important; }'
-     , ':link, :link * { color: #eee !important; font-weight:bold; }'
-     , ':visited, :visited * { color: #eee !important; }'] );
+     , ':link, :link * { color: #eee !important;; }'
+     , ':visited, :visited * { color: #aaa !important; }'] );
 
 
 var theme_fix_stylesheet = make_css_data_uri(
