@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-NEW=$(notmuch count -- tag:new and not from:me)
+NEW=$(notmuch count -- tag:new and not from:tom.hinton@cse.org.uk and not from:larkery.com)
 SUB=$(notmuch search --format=json -- tag:new and not from:me | jq -j '.[0:5]|.[]|.subject+", "')
 notmuch tag -new -- tag:new
 

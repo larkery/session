@@ -4,7 +4,7 @@
 , xercesc
 , netcdf, hdf5 , curl
 , libspatialite, sqlite
-, jdk, swig
+, jdk, swig, ant
 , netcdfSupport ? true
  }:
 
@@ -17,7 +17,7 @@ composableDerivation.composableDerivation {} (fixed: rec {
     sha256 = "55fc6ffbe76e9d2e7e6cf637010e5d4bba6a966d065f40194ff798544198236b";
   };
 
-  buildInputs = [ unzip libjpeg libtiff libpng proj openssl xercesc sqlite libspatialite jdk swig ]
+  buildInputs = [ unzip libjpeg libtiff libpng proj openssl xercesc sqlite libspatialite jdk swig ant ]
   ++ (with pythonPackages; [ python numpy wrapPython ])
   ++ (stdenv.lib.optionals netcdfSupport [ netcdf hdf5 curl ]);
 
@@ -49,14 +49,14 @@ composableDerivation.composableDerivation {} (fixed: rec {
 
   buildPhase = ''
   make
-  pushd gdal/swig/java
+  pushd swig/java
   make
   popd
   '';
 
   installPhase = ''
   make install
-  pushd gdal/swig/java
+  pushd swig/java
   make install
   popd
   '';
