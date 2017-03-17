@@ -1,5 +1,5 @@
 [global]
-    font = Terminus 9
+    font = Sans 10
     allow_markup = yes
     sort = yes
     indicate_hidden = yes
@@ -15,8 +15,7 @@
     horizontal_padding = 8
     format = "<b>%s:</b>%b %p"
     follow = mouse
-
-    geometry=x0+0-0
+    geometry=400x100-0-18
 
 [frame]
     width = 1
@@ -35,7 +34,7 @@
 [urgency_normal]
     timeout = 4
     foreground="#ffffff"
-    background="#aa3333"
+    background="#009acd
 
 [urgency_critical]
     timeout = 0
