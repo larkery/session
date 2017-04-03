@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell -i python -p python python27Packages.notmuch
+#! nix-shell --show-trace -i python -p python python27Packages.notmuch
 
 from __future__ import print_function
 import notmuch, os, shutil, sys
