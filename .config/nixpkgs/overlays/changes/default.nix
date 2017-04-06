@@ -25,10 +25,6 @@ self: super:
 
     gdal = (super.callPackage ./gdal.nix {});
 
-    rEnv = super.rWrapper.override {
-       packages = with self.rPackages; [ ggplot2 dplyr tidyr purrr ];
-    };
-
     grass72 = (super.callPackage ./grass.nix {});
 
     abunchoftags = (super.callPackage ./abunchoftags.nix {});
