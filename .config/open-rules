@@ -24,6 +24,4 @@ name xlsx?$
 exec soffice "$1"
 mime text/.+
 exec emacsclient -c "$1"
-name .*
-exec $(yad --entry --on-top --entry-label "open $1 with:")
 EOF

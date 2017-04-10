@@ -12,6 +12,7 @@ self: super:
       name = "theme-packages";
       paths = with self; [
          theme-vertex vanilla-dmz
+         gtk-engine-murrine
       ];
    };
 
@@ -27,38 +28,32 @@ self: super:
    commonPackages = self.buildEnv {
       name = "common-packages";
       paths = with self; [
-         emacs
-         emacs-pdf-tools
-         graphviz
-         notmuch
-         isync
-         msmtp
+         emacs emacs-pdf-tools graphviz aspell aspellDicts.en w3m
+
+         notmuch isync msmtp
+
+         gitAndTools.gitFull vcsh mr
+         pass gnupg
+
+         file yad # for xdg-open
+
          man-pages
          acpi
-         vcsh
-         zip
-         unzip
-         gitAndTools.gitFull
-         ag
-         mr
+
+         zip unzip
+         ag most htop jq which sqlite
+
+         pamixer
          redshift
          xss-lock
          rxvt_unicode-with-plugins
-         pass
-         gnupg
-         most
-         w3m
+
          wpa_supplicant_gui
-         xclip
-         xorg.xclock
-         xdotool
-         xorg.xkill
-         aspell
-         aspellDicts.en
-         jq
-         libnotify
-         htop
-         file
+
+         xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight
+
+         libnotify dunst
+
       ];
    };
 
