@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# email tidying up process for render in emacs.
+# continuing the endless struggle against outlook, the worst email program
+
+tidy -q -config ~/.config/html-tidy/tidy.conf |
+     xmlstarlet -q ed -d '//table[@id="main-content-table"]' \
+                      -d '//table[@id="container-table"]' \
+                      -d '//a[starts-with(@href, "mailto:")]/@href' |
+     w3m -cols "$1" -o display_link_number=1 -o display_charset=UTF-8 -dump -T text/html |
+     perl -pe '$/=""; s/\n+/\n/;' |
+     perl -ne 'if (/^--[- ]*$/) {print "(stripped signature junk ...)"; exit}; print'
