@@ -30,7 +30,7 @@ self: super:
       paths = with self; [
          emacs emacs-pdf-tools graphviz aspell aspellDicts.en w3m
 
-         notmuch isync msmtp
+         notmuch isync msmtp html-tidy xmlstarlet
 
          gitAndTools.gitFull vcsh mr
          pass gnupg
