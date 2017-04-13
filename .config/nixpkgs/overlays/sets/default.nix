@@ -20,7 +20,7 @@ self: super:
       name = "r-environment";
       paths = [(self.rWrapper.override {
         packages = with self.rPackages; [
-           ggplot2 dplyr tidyr purrr openxlsx fuzzyjoin assertthat
+           ggplot2 dplyr tidyr purrr openxlsx fuzzyjoin assertthat microbenchmark
         ];
      })];
    };

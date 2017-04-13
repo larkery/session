@@ -168,27 +168,35 @@ def sleepy_tag(t):
 
 sleepy_tags = filter(sleepy_tag, db.get_all_tags())
 
-def manage_inbox(maildir, archive):
+def manage_inbox(me, folders):
     actions = [
-        ('tag:inbox and not folder:"%s/Inbox"' % (maildir), remove_tag('inbox')),
-        ('tag:inbox and folder:"%s/Sent Items"' % (maildir), remove_tag('inbox')),
-        ('folder:"%s/Inbox" AND NOT tag:inbox' % (maildir), refile_to('%s/%s' % (maildir, archive)))
+        ('tag:inbox and not tag:sent and not folder:"%(inbox)s"' % folders, remove_tag('inbox')),
+        ('from:%s and not tag:sent' % (me,), add_tag('sent')),
+        ('folder:"%(inbox)s" AND NOT tag:inbox' % folders, refile_to(folders['archive'])),
     ]
 
     if sleepy_tags:
-        actions = actions + (' OR '.join(map(lambda t : 'tag:'+t, sleepy_tags)), awaken(sleepy_tags, '%s/Inbox' % (maildir)))
+        actions = actions + (' OR '.join(map(lambda t : 'tag:'+t, sleepy_tags)),
+                             awaken(sleepy_tags, '%(inbox)s' % folders))
 
-    return restrict('path:%s/**' % (maildir), actions)
+    return restrict('path:%(root)s/**' % folders, actions)
 
 delete_deleted = [ ('tag:deleted', delete) ]
 tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
 
+def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
+    return {
+        'root':maildir,
+        'archive':maildir+'/'+archive,
+        'inbox':maildir+'/'+inbox,
+        'sent':maildir+'/'+sent
+    }
+
 actions = [item for l in
            [delete_deleted,
-            manage_inbox('cse', 'Archives'),
-            manage_inbox('fastmail', 'Archive'),
+            manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
+            manage_inbox('larkery.com', folders('fastmail')),
             tag_calendar] for item in l]
-
 
 def is_maildir(maildir):
     return '.uidvalidity' in maildir[2]
