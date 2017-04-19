@@ -1,4 +1,4 @@
-url file:///[\\/]+CSE-BS3-FILE[\\/]
+url file:///[\\/]*CSE-BS3-FILE[\\/]
 exec xdg-open "${${1//CSE-BS3-FILE?/\/net/cse-bs3-file/}//\\//}"
 scheme file
 exec xdg-open "$(printf '%b' "${${${1//file://}//+/ }//\%/\\x}")"

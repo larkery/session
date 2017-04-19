@@ -6,6 +6,8 @@ if [ "$1" = "-bg" ]; then
     exit
 fi
 
+echo "opening $@"
+
 err () {
     echo "error: $@" 1>&2
 }
