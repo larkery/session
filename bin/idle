@@ -1,0 +1,105 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use Mail::IMAPClient;
+use IO::Socket::SSL;
+
+unless (-t STDIN) {
+    exec "urxvt", "-e", $0;
+}
+
+open my $mbsync, $ENV{"HOME"} . "/.mbsyncrc" or die $!;
+
+my $acct;
+my %accts;
+
+while (my $line = <$mbsync>) {
+    next if $line =~ /^\s*#/;
+    if ($line =~ /IMAPAccount (.+)/) {
+        $acct = $1;
+    } else {
+        if ($line =~ /\s*([^\s]+)\s+?(.+)/) {
+            $accts{$acct}{$1} = $2;
+        }
+    }
+}
+
+use Data::Dumper;
+
+use IPC::Semaphore;
+use IPC::SysV qw(IPC_PRIVATE IPC_CREAT SEM_UNDO);
+
+my $sem = new IPC::Semaphore(IPC_PRIVATE, 1, IPC_CREAT);
+$sem->setval(0, 1);
+
+sub lock_system {
+    my ($command) = @_;
+    $sem->op(0, -1, SEM_UNDO);
+    system("$command 2>/dev/null >/dev/null");
+    $sem->op(0, 1, SEM_UNDO);
+}
+
+system "notmuch new";
+system "stty -tostop";
+my @children;
+for my $server ( keys %accts ) {
+    my $proc = fork;
+    if ($proc) {
+        push @children, $proc;
+    } elsif ($proc == 0) {
+        my $host = $accts{$server}{Host};
+        my $user = $accts{$server}{User};
+        my $pass = $accts{$server}{PassCmd};
+        my $ssltype = $accts{$server}{SSLType};
+
+        my $mailbox = 'INBOX';
+        my $update_cmd = "mbsync $server:INBOX; NO_SYNC=1 notmuch new";
+
+        $pass =~ s/^"//;
+        $pass =~ s/"$//;
+        $pass = `$pass`;
+
+        print "connecting to $host:$ssltype...\n";
+        my $client;
+        if ($ssltype eq 'IMAPS') {
+            my $socket = IO::Socket::SSL->new (PeerAddr => $host, PeerPort => 993)
+                or die "cannot connect SSL $host: $!\n";
+            $client = Mail::IMAPClient->new(
+                Socket => $socket,
+                KeepAlive => 'true',
+                User => $user,
+                Password => $pass);
+        } else {
+            $client = Mail::IMAPClient->new(
+                Server => $host,
+                Port => 143,
+                KeepAlive => 'true',
+                Starttls => 'true',
+                User => $user,
+                Password => $pass
+                );
+        }
+        die "cannot connect to $host: $!\n" unless $client;
+        print "connected to $host\n";
+        $client->select($mailbox) or die("cannot select\n");
+        until (0) {
+            die "$host disconnected\n"
+                unless $client->IsConnected;
+            my $unseen = $client->unseen_count;
+            print "$server: $unseen\n";
+            my $tag = $client->idle()
+                or die "could not idle\n";
+            my $msgs = $client->idle_data(300);
+            if (scalar(@$msgs)) {
+                print "$server scan\n";
+                lock_system($update_cmd);
+                print "$server done\n";
+            }
+            $client->done($tag);
+        }
+        exit 0;
+    }
+}
+
+wait for @children;

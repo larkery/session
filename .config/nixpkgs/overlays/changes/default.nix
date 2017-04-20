@@ -3,10 +3,12 @@ self: super:
 {
     emacs25 =
     let
-      patch = ./patches/0001-Allow-minibuffer-to-shrink-to-zero-lines.patch;
+      patch0 = ./patches/0001-Allow-minibuffer-to-shrink-to-zero-lines.patch;
+      patch1 = ./patches/emacs-double-buffer.patch;
       emacsNoGTK = (super.emacs25.overrideAttrs
-                     (a : {patches = a.patches ++ [patch];}))
-                     .override { withGTK2 = false; withGTK3 = false; };
+                     (a : {patches = a.patches ++ [patch0 patch1];}))
+                     .override { withGTK2 = false; withGTK3 = false;
+                                 srcRepo = true; };
     in emacsNoGTK;
 
     dmenu = super.dmenu.override {

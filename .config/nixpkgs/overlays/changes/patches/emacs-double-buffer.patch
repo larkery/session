@@ -1,0 +1,2168 @@
+From c29071587c64efb30792bd72248d3c791abd9337 Mon Sep 17 00:00:00 2001
+From: Daniel Colascione <dancol@dancol.org>
+Date: Thu, 20 Oct 2016 20:34:36 -0700
+Subject: Add double-buffering support to reduce flicker
+
+* src/dispextern.h (struct glyph_string): Remove window member
+(block_buffer_flips, unblock_buffer_flips)
+(buffer_flipping_blocked_p): Declare.
+
+* src/xterm.h (struct x_display_info): New member supports_xdbe.
+(struct x_output): New members draw_desc and need_buffer_flip.
+(FRAME_X_DRAWABLE, FRAME_X_RAW_DRAWABLE)
+(FRAME_X_DOUBLE_BUFFERED_P)
+(FRAME_X_NEED_BUFFER_FLIP): New macros.
+(set_up_x_back_buffer, tear_down_x_back_buffer)
+(initial_set_up_x_back_buffer): Declare.
+
+* src/xterm.c: Include Xdbe.h.
+(x_begin_cr_clip, x_fill_rectangle, x_draw_rectangle)
+(x_draw_vertical_window_border, x_update_end)
+(x_setup_relief_color, x_draw_relief_rect)
+(x_draw_fringe_bitmap, x_shift_glyphs_for_insert)
+(x_scroll_run, x_draw_hollow_cursor, x_draw_bar_cursor): Use
+FRAME_X_DRAWABLE instead of FRAME_X_WINDOW; rename local
+variables appropriately; substitute calls to XClearArea with
+x_clear_area, which DTRT for double buffering.
+(x_clear_window, x_clear_area): In double-buffering mode, use
+rect-drawing X functions instead of XClearWindow and
+XClearArea, which always operate on the front buffer.
+(show_back_buffer): New function.
+(XTframe_up_to_date): Call show_back_buffer when done.
+(x_clear_frame, x_clear_frame_area): Remove obsolete calls to
+gtk_widget_queue_draw to refresh scroll bars; scroll bars are
+now independent X windows.
+(handle_one_xevent): Call font_drop_xrender_surfaces when
+XftDraw might need regenerating; perform buffer flip when
+responding to Expose events; issue front-buffer clearing
+commands as stopgap while we wait for redisplay.
+Call flush_dirty_back_buffers.
+(x_make_frame_visible): Un-bitrot comment; move XSETFRAME
+earlier in function.
+(x_free_frame_resources): Call tear_down_x_back_buffer when
+destroying frame.
+(x_term_init): Attempt to initialize double buffer extension.
+(x_flip_and_flush): New function.
+(x_redisplay_interface): Point to x_flip_and_flush instead of
+x_flip directly.
+(flush_dirty_back_buffers): New function.
+(x_create_terminal): Register buffer_flipping_unblocked_hook.
+
+* src/xftfont.c (xftfont_drop_xrender_surfaces): Use
+FRAME_X_DRAWABLE instead of FRAME_X_WINDOW.
+(xftfont_draw): Call x_mark_frame_dirty.
+(xftfont_drop_xrender_surfaces): New function.
+(syms_of_xftfont): Register it.
+
+* src/xfont.c (xfont_draw): Use FRAME_X_DRAWABLE instead of
+FRAME_X_WINDOW.
+
+* src/xfns.c: Include Xdbe.h.
+(x_set_inhibit_double_buffering, set_up_x_back_buffer)
+(Fx_double_buffered_p): New functions.
+(x_window): Call initial_set_up_x_back_buffer.
+(x_make_gc): Use FRAME_X_DRAWABLE instead of FRAME_X_WINDOW.
+(Fx_create_frame): Configure `inhibit-double-buffering'
+frame parameter.
+(x_create_tip_frame): Call initial_set_up_x_back_buffer.
+(x_frame_parm_handlers): Register
+x_set_inhibit_double_buffering.
+(syms_of_xfns): Register Sx_double_buffered_p.
+(x_mark_frame_dirty): Define.
+
+* src/xfaces.c (x_create_gc): Use FRAME_X_DRAWABLE instead of
+FRAME_X_WINDOW.
+
+* src/xdisp.c (remember_mouse_glyph, init_glyph_string): Use
+FRAME_X_DRAWABLE instead of FRAME_X_WINDOW.
+(redisplay_internal): Restart redisplay if a frame is garbaged
+during updating; explain why. Block buffer flips
+during redisplay.
+(redisplay_preserve_echo_area): Block buffer flip during call
+to redisplay_internal.
+(buffer_flip_blocked_depth): New variable.
+(block_buffer_flips, unblock_buffer_flips)
+(buffer_flipping_blocked_p): New functions.
+(init_glyph_string): Stop setting window member of struct
+glyph_string.
+
+* src/w32fns.c (w32_frame_parm_handlers): Add placeholder for
+x_set_inhibit_double_buffering.
+
+* src/termhooks.h (struct terminal): Add
+buffer_flipping_unblocked_hook.
+
+* src/nsfns.m (ns_frame_parm_handlers): Add placeholder for
+x_set_inhibit_double_buffering.
+
+* src/image.c (x_create_bitmap_from_data)
+(x_create_bitmap_from_file, x_create_x_image_and_pixmap)
+(Create_Pixmap_From_Bitmap_Data)
+(x_create_bitmap_from_xpm_data, xpm_load, gs_load): Use
+FRAME_X_DRAWABLE instead of FRAME_X_WINDOW; rename local
+variables appropriately.
+
+* src/gtkutil.c: Include Xdbe.h.
+(xg_get_widget_from_map): Forward declare.
+(xg_clear_under_internal_border): Remove obsolete calls to
+refresh scroll bars.
+(xg_create_frame_widgets): Call initial_set_up_x_back_buffer.
+(xg_free_frame_widgets): Call tear_down_x_back_buffer; reset
+FRAME_X_DRAWABLE as well as FRAME_X_WINDOW and for the
+same reason.
+(xg_set_background_color): Set scroll bar background colors.
+(xg_finish_scroll_bar_creation): New function with common
+logic of xg_create_scroll_bar, xg_create_horizontal_scroll_bar. Force
+scroll bars to be real X11 windows.
+(xg_create_scroll_bar, xg_create_horizontal_scroll_bar): Call
+xg_finish_scroll_bar_creation.
+(xg_update_scrollbar_pos, xg_update_horizontal_scrollbar_pos):
+Remove obsolete calls to refresh scroll bars; fix comments.
+
+* src/ftxfont.c (ftxfont_get_gcs, ftxfont_draw_bitmap,
+(ftxfont_draw_background): Use FRAME_X_DRAWABLE instead of
+FRAME_X_WINDOW.
+
+* src/frame.c (frame_parms): Add table entry for new
+`inhibit-double-buffering' frame parameter
+(syms_of_frame): Register Qinhibit_double_buffering.
+
+* src/font.h (struct font_driver): Add new `flush_frame_caches' hook.
+(font_drop_xrender_surfaces): Declare.
+
+* src/font.c (font_drop_xrender_surfaces): New function.
+
+* src/Makefile.in (XDBE_LIBS, XDBE_CFLAGS): Substitute.
+
+* etc/NEWS: Mention use of double buffering
+
+* doc/lispref/frames.texi (Management Parameters): Document
+`inhibit-double-buffering' frame parameters.
+(Visibility of Frames): Document `x-double-buffered-p'.
+
+* configure.ac: Check for the X double buffer extension
+---
+ configure.ac            |  18 +++
+ doc/lispref/frames.texi |  13 +++
+ etc/NEWS                |   6 +
+ oldXMenu/AddPane.c      |   1 +
+ oldXMenu/AddSel.c       |   1 +
+ oldXMenu/XCrAssoc.c     |   1 +
+ src/Makefile.in         |   6 +-
+ src/dispextern.h        |   5 +-
+ src/font.c              |  10 ++
+ src/font.h              |  11 +-
+ src/frame.c             |   2 +
+ src/ftxfont.c           |  14 +--
+ src/gtkutil.c           | 167 +++++++++++++---------------
+ src/image.c             |  20 ++--
+ src/nsfns.m             |   1 +
+ src/termhooks.h         |   5 +
+ src/w32fns.c            |   1 +
+ src/xdisp.c             |  69 +++++++++++-
+ src/xfaces.c            |   2 +-
+ src/xfns.c              | 128 ++++++++++++++++++++-
+ src/xfont.c             |  16 +--
+ src/xftfont.c           |  31 ++++--
+ src/xterm.c             | 288 ++++++++++++++++++++++++++++++++++--------------
+ src/xterm.h             |  35 ++++++
+ 24 files changed, 635 insertions(+), 216 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 46fd434..f67fe83 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -3712,6 +3712,24 @@ fi
+ AC_SUBST(XFIXES_CFLAGS)
+ AC_SUBST(XFIXES_LIBS)
+ 
++### Use Xdbe (-lXdbe) if available
++HAVE_XDBE=no
++if test "${HAVE_X11}" = "yes"; then
++  AC_CHECK_HEADER(X11/extensions/Xdbe.h,
++    [AC_CHECK_LIB(Xext, XdbeAllocateBackBufferName, HAVE_XDBE=yes)],
++    [],
++    [#include <X11/Xlib.h>
++    ])
++  if test $HAVE_XDBE = yes; then
++    XDBE_LIBS=-lXext
++  fi
++  if test $HAVE_XDBE = yes; then
++    AC_DEFINE(HAVE_XDBE, 1, [Define to 1 if you have the Xdbe extension.])
++  fi
++fi
++AC_SUBST(XDBE_CFLAGS)
++AC_SUBST(XDBE_LIBS)
++
+ ### Use libxml (-lxml2) if available
+ ### mingw32 doesn't use -lxml2, since it loads the library dynamically.
+ HAVE_LIBXML2=no
+diff --git a/doc/lispref/frames.texi b/doc/lispref/frames.texi
+index 7736438..90f8e35 100644
+--- a/doc/lispref/frames.texi
++++ b/doc/lispref/frames.texi
+@@ -1539,6 +1539,13 @@ prevent hanging with those window managers.
+ If non-@code{nil}, the frame is visible on all virtual desktops on systems
+ with virtual desktops.
+ 
++@vindex inhibit-double-buffering, a frame parameter
++@item inhibit-double-buffering
++If non-@code{nil}, the frame is drawn to the screen without double buffering.
++Emacs normally attempts to use double buffering, where available, to
++reduce flicker.  Set this property if you experience display bugs or
++pine for that retro, flicker-y feeling.
++
+ @ignore
+ @vindex parent-id, a frame parameter
+ @item parent-id
+@@ -2210,6 +2217,12 @@ window manager.  This happens below the level at which Emacs can exert
+ any control, but Emacs does provide events that you can use to keep
+ track of such changes.  @xref{Misc Events}.
+ 
++@defun x-double-buffered-p &optional frame
++This function returns non-@code{nil} if @var{frame} is currently
++being rendered with double buffering.  @var{frame} defaults to the
++selected frame.
++@end defun
++
+ @node Raising and Lowering
+ @section Raising and Lowering Frames
+ 
+diff --git a/oldXMenu/AddPane.c b/oldXMenu/AddPane.c
+index 2c8dda8..e7246f2 100644
+--- a/oldXMenu/AddPane.c
++++ b/oldXMenu/AddPane.c
+@@ -12,6 +12,7 @@
+  *
+  */
+ 
++#include <string.h>
+ #include "XMenuInt.h"
+ 
+ int
+diff --git a/oldXMenu/AddSel.c b/oldXMenu/AddSel.c
+index 07eb1fe..2a52a6a 100644
+--- a/oldXMenu/AddSel.c
++++ b/oldXMenu/AddSel.c
+@@ -13,6 +13,7 @@
+  *
+  */
+ 
++#include <string.h>
+ #include "XMenuInt.h"
+ 
+ int
+diff --git a/oldXMenu/XCrAssoc.c b/oldXMenu/XCrAssoc.c
+index 9443481..7150cbc 100644
+--- a/oldXMenu/XCrAssoc.c
++++ b/oldXMenu/XCrAssoc.c
+@@ -3,6 +3,7 @@
+ 
+ 
+ #include <config.h>
++#include <stdlib.h>
+ #include <X11/Xlib.h>
+ #include <errno.h>
+ #include "X10.h"
+diff --git a/src/Makefile.in b/src/Makefile.in
+index 89f7a92..dc0bfff 100644
+--- a/src/Makefile.in
++++ b/src/Makefile.in
+@@ -254,6 +254,9 @@ XINERAMA_CFLAGS = @XINERAMA_CFLAGS@
+ XFIXES_LIBS = @XFIXES_LIBS@
+ XFIXES_CFLAGS = @XFIXES_CFLAGS@
+ 
++XDBE_LIBS = @XDBE_LIBS@
++XDBE_CFLAGS = @XDBE_CFLAGS@
++
+ ## widget.o if USE_X_TOOLKIT, otherwise empty.
+ WIDGET_OBJ=@WIDGET_OBJ@
+ 
+@@ -372,7 +375,7 @@ ALL_CFLAGS=-Demacs $(MYCPPFLAGS) -I. -I$(srcdir) \
+   $(C_SWITCH_MACHINE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
+   $(GNUSTEP_CFLAGS) $(CFLAGS_SOUND) $(RSVG_CFLAGS) $(IMAGEMAGICK_CFLAGS) \
+   $(PNG_CFLAGS) $(LIBXML2_CFLAGS) $(DBUS_CFLAGS) \
+-  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) \
++  $(XRANDR_CFLAGS) $(XINERAMA_CFLAGS) $(XFIXES_CFLAGS) $(XDBE_CFLAGS) \
+   $(WEBKIT_CFLAGS) \
+   $(SETTINGS_CFLAGS) $(FREETYPE_CFLAGS) $(FONTCONFIG_CFLAGS) \
+   $(LIBOTF_CFLAGS) $(M17N_FLT_CFLAGS) $(DEPFLAGS) \
+@@ -489,6 +492,7 @@ LIBES = $(LIBS) $(W32_LIBS) $(LIBS_GNUSTEP) $(LIBX_BASE) $(LIBIMAGE) \
+    $(WEBKIT_LIBS) \
+    $(LIB_EACCESS) $(LIB_FDATASYNC) $(LIB_TIMER_TIME) $(DBUS_LIBS) \
+    $(LIB_EXECINFO) $(XRANDR_LIBS) $(XINERAMA_LIBS) $(XFIXES_LIBS) \
++   $(XDBE_LIBS) \
+    $(LIBXML2_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) $(CAIRO_LIBS) \
+    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) $(SETTINGS_LIBS) $(LIBSELINUX_LIBS) \
+    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
+diff --git a/src/dispextern.h b/src/dispextern.h
+index 79bc935..f272799 100644
+--- a/src/dispextern.h
++++ b/src/dispextern.h
+@@ -1276,7 +1276,6 @@ struct glyph_string
+ 
+   /* X display and window for convenience.  */
+   Display *display;
+-  Window window;
+ 
+   /* The glyph row for which this string was built.  It determines the
+      y-origin and height of the string.  */
+@@ -3357,6 +3356,10 @@ void x_cr_init_fringe (struct redisplay_interface *);
+ 
+ extern unsigned row_hash (struct glyph_row *);
+ 
++extern void block_buffer_flips(void);
++extern void unblock_buffer_flips(void);
++extern bool buffer_flipping_blocked_p(void);
++
+ /* Defined in image.c */
+ 
+ #ifdef HAVE_WINDOW_SYSTEM
+diff --git a/src/font.c b/src/font.c
+index f8e6794..ce63233 100644
+--- a/src/font.c
++++ b/src/font.c
+@@ -5275,6 +5275,16 @@ font_deferred_log (const char *action, Lisp_Object arg, Lisp_Object result)
+ }
+ 
+ void
++font_drop_xrender_surfaces (struct frame *f)
++{
++  struct font_driver_list *list;
++
++  for (list = f->font_driver_list; list; list = list->next)
++    if (list->on && list->driver->drop_xrender_surfaces)
++      list->driver->drop_xrender_surfaces (f);
++}
++
++void
+ syms_of_font (void)
+ {
+   sort_shift_bits[FONT_TYPE_INDEX] = 0;
+diff --git a/src/font.h b/src/font.h
+index cf47729..c14823b 100644
+--- a/src/font.h
++++ b/src/font.h
+@@ -763,6 +763,13 @@ struct font_driver
+      Return non-nil if the driver support rendering of combining
+      characters for FONT according to Unicode combining class.  */
+   Lisp_Object (*combining_capability) (struct font *font);
++
++  /* Optional
++
++     Called when frame F is double-buffered and its size changes; Xft
++     relies on this hook to throw away its old XftDraw (which won't
++     work after the size change) and get a new one.  */
++  void (*drop_xrender_surfaces) (struct frame *f);
+ };
+ 
+ 
+@@ -862,7 +869,9 @@ extern void *font_get_frame_data (struct frame *f, Lisp_Object);
+ extern void font_filter_properties (Lisp_Object font,
+ 				    Lisp_Object alist,
+ 				    const char *const boolean_properties[],
+-				    const char *const non_boolean_properties[]);
++                                    const char *const non_boolean_properties[]);
++
++extern void font_drop_xrender_surfaces (struct frame *f);
+ 
+ #ifdef HAVE_FREETYPE
+ extern struct font_driver ftfont_driver;
+diff --git a/src/frame.c b/src/frame.c
+index f3a548c..3a2d009 100644
+--- a/src/frame.c
++++ b/src/frame.c
+@@ -3128,6 +3128,7 @@ static const struct frame_parm_table frame_parms[] =
+   {"alpha",			SYMBOL_INDEX (Qalpha)},
+   {"sticky",			SYMBOL_INDEX (Qsticky)},
+   {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
++  {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
+ };
+ 
+ #ifdef HAVE_WINDOW_SYSTEM
+@@ -5044,6 +5045,7 @@ syms_of_frame (void)
+   DEFSYM (Qvertical_scroll_bars, "vertical-scroll-bars");
+   DEFSYM (Qvisibility, "visibility");
+   DEFSYM (Qwait_for_wm, "wait-for-wm");
++  DEFSYM (Qinhibit_double_buffering, "inhibit-double-buffering");
+ 
+   {
+     int i;
+diff --git a/src/ftxfont.c b/src/ftxfont.c
+index f49d44f..bfdeb40 100644
+--- a/src/ftxfont.c
++++ b/src/ftxfont.c
+@@ -95,7 +95,7 @@ ftxfont_get_gcs (struct frame *f, unsigned long foreground, unsigned long backgr
+       if (! x_alloc_nearest_color (f, FRAME_X_COLORMAP (f), &color))
+ 	break;
+       xgcv.foreground = color.pixel;
+-      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++      new->gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				   GCForeground, &xgcv);
+     }
+   unblock_input ();
+@@ -139,14 +139,14 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
+ 		p[n[0]].y = y - bitmap.top + i;
+ 		if (++n[0] == size)
+ 		  {
+-		    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++                    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				 gc_fore, p, size, CoordModeOrigin);
+ 		    n[0] = 0;
+ 		  }
+ 	      }
+ 	}
+       if (flush && n[0] > 0)
+-	XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++        XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 		     gc_fore, p, n[0], CoordModeOrigin);
+     }
+   else
+@@ -168,7 +168,7 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
+ 		  pp[n[idx]].y = y - bitmap.top + i;
+ 		  if (++(n[idx]) == size)
+ 		    {
+-		      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++                      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				   idx == 6 ? gc_fore : gcs[idx], pp, size,
+ 				   CoordModeOrigin);
+ 		      n[idx] = 0;
+@@ -180,10 +180,10 @@ ftxfont_draw_bitmap (struct frame *f, GC gc_fore, GC *gcs, struct font *font,
+ 	{
+ 	  for (i = 0; i < 6; i++)
+ 	    if (n[i] > 0)
+-	      XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++              XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 			   gcs[i], p + 0x100 * i, n[i], CoordModeOrigin);
+ 	  if (n[6] > 0)
+-	    XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++            XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 			 gc_fore, p + 0x600, n[6], CoordModeOrigin);
+ 	}
+     }
+@@ -203,7 +203,7 @@ ftxfont_draw_background (struct frame *f, struct font *font, GC gc, int x, int y
+   XGetGCValues (FRAME_X_DISPLAY (f), gc,
+ 		GCForeground | GCBackground, &xgcv);
+   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
+-  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
++  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), gc,
+ 		  x, y - FONT_BASE (font), width, FONT_HEIGHT (font));
+   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
+ }
+diff --git a/src/gtkutil.c b/src/gtkutil.c
+index 88e6d30..986eca8 100644
+--- a/src/gtkutil.c
++++ b/src/gtkutil.c
+@@ -48,6 +48,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+ #include "emacsgtkfixed.h"
+ #endif
+ 
++#ifdef HAVE_XDBE
++#include <X11/extensions/Xdbe.h>
++#endif
++
+ #ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
+ #define gtk_widget_set_has_window(w, b) \
+   (gtk_fixed_set_has_window (GTK_FIXED (w), b))
+@@ -143,6 +147,8 @@ struct xg_frame_tb_info
+   GtkTextDirection dir;
+ };
+ 
++static GtkWidget * xg_get_widget_from_map (ptrdiff_t idx);
++
+ 
+ /***********************************************************************
+                       Display handling functions
+@@ -815,12 +821,6 @@ xg_clear_under_internal_border (struct frame *f)
+ {
+   if (FRAME_INTERNAL_BORDER_WIDTH (f) > 0)
+     {
+-#ifndef USE_CAIRO
+-      GtkWidget *wfixed = f->output_data.x->edit_widget;
+-
+-      gtk_widget_queue_draw (wfixed);
+-      gdk_window_process_all_updates ();
+-#endif
+       x_clear_area (f, 0, 0,
+ 		    FRAME_PIXEL_WIDTH (f), FRAME_INTERNAL_BORDER_WIDTH (f));
+ 
+@@ -1233,6 +1233,7 @@ xg_create_frame_widgets (struct frame *f)
+      by callers of this function.  */
+   gtk_widget_realize (wfixed);
+   FRAME_X_WINDOW (f) = GTK_WIDGET_TO_X_WIN (wfixed);
++  initial_set_up_x_back_buffer (f);
+ 
+   /* Since GTK clears its window by filling with the background color,
+      we must keep X and GTK background in sync.  */
+@@ -1296,8 +1297,11 @@ xg_free_frame_widgets (struct frame *f)
+       if (tbinfo)
+         xfree (tbinfo);
+ 
++      /* x_free_frame_resources should have taken care of it */
++      eassert (!FRAME_X_DOUBLE_BUFFERED_P (f));
+       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
+       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
++      FRAME_X_RAW_DRAWABLE (f) = 0;
+       FRAME_GTK_OUTER_WIDGET (f) = 0;
+ #ifdef USE_GTK_TOOLTIP
+       if (x->ttip_lbl)
+@@ -1440,6 +1444,18 @@ xg_set_background_color (struct frame *f, unsigned long bg)
+     {
+       block_input ();
+       xg_set_widget_bg (f, FRAME_GTK_WIDGET (f), FRAME_BACKGROUND_PIXEL (f));
++
++      Lisp_Object bar;
++      for (bar = FRAME_SCROLL_BARS (f);
++           !NILP (bar);
++           bar = XSCROLL_BAR (bar)->next)
++        {
++          GtkWidget *scrollbar =
++            xg_get_widget_from_map (XSCROLL_BAR (bar)->x_window);
++          GtkWidget *webox = gtk_widget_get_parent (scrollbar);
++          xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
++        }
++
+       unblock_input ();
+     }
+ }
+@@ -2265,7 +2281,6 @@ xg_mark_data (void)
+     }
+ }
+ 
+-
+ /* Callback called when a menu item is destroyed.  Used to free data.
+    W is the widget that is being destroyed (not used).
+    CLIENT_DATA points to the xg_menu_item_cb_data associated with the W.  */
+@@ -3569,44 +3584,23 @@ xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
+   xg_remove_widget_from_map (id);
+ }
+ 
+-/* Create a scroll bar widget for frame F.  Store the scroll bar
+-   in BAR.
+-   SCROLL_CALLBACK is the callback to invoke when the value of the
+-   bar changes.
+-   END_CALLBACK is the callback to invoke when scrolling ends.
+-   SCROLL_BAR_NAME is the name we use for the scroll bar.  Can be used
+-   to set resources for the widget.  */
+-
+-void
+-xg_create_scroll_bar (struct frame *f,
+-                      struct scroll_bar *bar,
+-                      GCallback scroll_callback,
+-                      GCallback end_callback,
+-                      const char *scroll_bar_name)
++static void
++xg_finish_scroll_bar_creation (struct frame *f,
++                               GtkWidget *wscroll,
++                               struct scroll_bar *bar,
++                               GCallback scroll_callback,
++                               GCallback end_callback,
++                               const char *scroll_bar_name)
+ {
+-  GtkWidget *wscroll;
+-  GtkWidget *webox;
+-  intptr_t scroll_id;
+-#ifdef HAVE_GTK3
+-  GtkAdjustment *vadj;
+-#else
+-  GtkObject *vadj;
+-#endif
++  GtkWidget *webox = gtk_event_box_new ();
+ 
+-  /* Page, step increment values are not so important here, they
+-     will be corrected in x_set_toolkit_scroll_bar_thumb. */
+-  vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
+-                             0.1, 0.1, 0.1);
+-
+-  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
+-  webox = gtk_event_box_new ();
+   gtk_widget_set_name (wscroll, scroll_bar_name);
+ #ifndef HAVE_GTK3
+   gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
+ #endif
+   g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
+ 
+-  scroll_id = xg_store_widget_in_map (wscroll);
++  ptrdiff_t scroll_id = xg_store_widget_in_map (wscroll);
+ 
+   g_signal_connect (G_OBJECT (wscroll),
+                     "destroy",
+@@ -3630,11 +3624,52 @@ xg_create_scroll_bar (struct frame *f,
+   gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
+   gtk_container_add (GTK_CONTAINER (webox), wscroll);
+ 
++  xg_set_widget_bg (f, webox, FRAME_BACKGROUND_PIXEL (f));
++
++  /* N.B. The event box doesn't become a real X11 window until we ask
++     for its XID via GTK_WIDGET_TO_X_WIN.  If the event box is not a
++     real X window, it and its scroll-bar child try to draw on the
++     Emacs main window, which we draw over using Xlib.  */
++  gtk_widget_realize (webox);
++  GTK_WIDGET_TO_X_WIN (webox);
+ 
+   /* Set the cursor to an arrow.  */
+   xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
+ 
+   bar->x_window = scroll_id;
++}
++
++/* Create a scroll bar widget for frame F.  Store the scroll bar
++   in BAR.
++   SCROLL_CALLBACK is the callback to invoke when the value of the
++   bar changes.
++   END_CALLBACK is the callback to invoke when scrolling ends.
++   SCROLL_BAR_NAME is the name we use for the scroll bar.  Can be used
++   to set resources for the widget.  */
++
++void
++xg_create_scroll_bar (struct frame *f,
++                      struct scroll_bar *bar,
++                      GCallback scroll_callback,
++                      GCallback end_callback,
++                      const char *scroll_bar_name)
++{
++  GtkWidget *wscroll;
++#ifdef HAVE_GTK3
++  GtkAdjustment *vadj;
++#else
++  GtkObject *vadj;
++#endif
++
++  /* Page, step increment values are not so important here, they
++     will be corrected in x_set_toolkit_scroll_bar_thumb. */
++  vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX,
++                             0.1, 0.1, 0.1);
++
++  wscroll = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT (vadj));
++
++  xg_finish_scroll_bar_creation (f, wscroll, bar, scroll_callback,
++                                 end_callback, scroll_bar_name);
+   bar->horizontal = 0;
+ }
+ 
+@@ -3652,8 +3687,6 @@ xg_create_horizontal_scroll_bar (struct frame *f,
+ 				 const char *scroll_bar_name)
+ {
+   GtkWidget *wscroll;
+-  GtkWidget *webox;
+-  intptr_t scroll_id;
+ #ifdef HAVE_GTK3
+   GtkAdjustment *hadj;
+ #else
+@@ -3666,42 +3699,9 @@ xg_create_horizontal_scroll_bar (struct frame *f,
+                              0.1, 0.1, 0.1);
+ 
+   wscroll = gtk_scrollbar_new (GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT (hadj));
+-  webox = gtk_event_box_new ();
+-  gtk_widget_set_name (wscroll, scroll_bar_name);
+-#ifndef HAVE_GTK3
+-  gtk_range_set_update_policy (GTK_RANGE (wscroll), GTK_UPDATE_CONTINUOUS);
+-#endif
+-  g_object_set_data (G_OBJECT (wscroll), XG_FRAME_DATA, (gpointer)f);
+-
+-  scroll_id = xg_store_widget_in_map (wscroll);
+-
+-  g_signal_connect (G_OBJECT (wscroll),
+-                    "destroy",
+-                    G_CALLBACK (xg_gtk_scroll_destroy),
+-                    (gpointer) scroll_id);
+-  g_signal_connect (G_OBJECT (wscroll),
+-                    "change-value",
+-                    scroll_callback,
+-                    (gpointer) bar);
+-  g_signal_connect (G_OBJECT (wscroll),
+-                    "button-release-event",
+-                    end_callback,
+-                    (gpointer) bar);
+-
+-  /* The scroll bar widget does not draw on a window of its own.  Instead
+-     it draws on the parent window, in this case the edit widget.  So
+-     whenever the edit widget is cleared, the scroll bar needs to redraw
+-     also, which causes flicker.  Put an event box between the edit widget
+-     and the scroll bar, so the scroll bar instead draws itself on the
+-     event box window.  */
+-  gtk_fixed_put (GTK_FIXED (f->output_data.x->edit_widget), webox, -1, -1);
+-  gtk_container_add (GTK_CONTAINER (webox), wscroll);
+ 
+-
+-  /* Set the cursor to an arrow.  */
+-  xg_set_cursor (webox, FRAME_DISPLAY_INFO (f)->xg_cursor);
+-
+-  bar->x_window = scroll_id;
++  xg_finish_scroll_bar_creation (f, wscroll, bar, scroll_callback,
++                                 end_callback, scroll_bar_name);
+   bar->horizontal = 1;
+ }
+ 
+@@ -3770,16 +3770,10 @@ xg_update_scrollbar_pos (struct frame *f,
+           gtk_widget_show_all (wparent);
+           gtk_widget_set_size_request (wscroll, width, height);
+         }
+-#ifndef USE_CAIRO
+-      gtk_widget_queue_draw (wfixed);
+-      gdk_window_process_all_updates ();
+-#endif
+       if (oldx != -1 && oldw > 0 && oldh > 0)
+         {
+-          /* Clear under old scroll bar position.  This must be done after
+-             the gtk_widget_queue_draw and gdk_window_process_all_updates
+-             above.  */
+-	  oldw += (scale - 1) * oldw;
++          /* Clear under old scroll bar position.  */
++          oldw += (scale - 1) * oldw;
+ 	  oldx -= (scale - 1) * oldw;
+           x_clear_area (f, oldx, oldy, oldw, oldh);
+         }
+@@ -3841,14 +3835,9 @@ xg_update_horizontal_scrollbar_pos (struct frame *f,
+           gtk_widget_show_all (wparent);
+           gtk_widget_set_size_request (wscroll, width, height);
+         }
+-      gtk_widget_queue_draw (wfixed);
+-      gdk_window_process_all_updates ();
+       if (oldx != -1 && oldw > 0 && oldh > 0)
+-	/* Clear under old scroll bar position.  This must be done after
+-	   the gtk_widget_queue_draw and gdk_window_process_all_updates
+-	   above.  */
+-	x_clear_area (f,
+-		      oldx, oldy, oldw, oldh);
++        /* Clear under old scroll bar position.  */
++        x_clear_area (f, oldx, oldy, oldw, oldh);
+ 
+       /* GTK does not redraw until the main loop is entered again, but
+          if there are no X events pending we will not enter it.  So we sync
+diff --git a/src/image.c b/src/image.c
+index 9bd2455..1303a93 100644
+--- a/src/image.c
++++ b/src/image.c
+@@ -220,7 +220,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
+ 
+ #ifdef HAVE_X_WINDOWS
+   Pixmap bitmap;
+-  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  bitmap = XCreateBitmapFromData (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				  bits, width, height);
+   if (! bitmap)
+     return -1;
+@@ -327,7 +327,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
+ 
+   filename = SSDATA (found);
+ 
+-  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  result = XReadBitmapFile (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 			    filename, &width, &height, &bitmap, &xhot, &yhot);
+   if (result != BitmapSuccess)
+     return -1;
+@@ -1952,7 +1952,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
+ {
+ #ifdef HAVE_X_WINDOWS
+   Display *display = FRAME_X_DISPLAY (f);
+-  Window window = FRAME_X_WINDOW (f);
++  Drawable drawable = FRAME_X_DRAWABLE (f);
+   Screen *screen = FRAME_X_SCREEN (f);
+ 
+   eassert (input_blocked_p ());
+@@ -1981,7 +1981,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
+   (*ximg)->data = xmalloc ((*ximg)->bytes_per_line * height);
+ 
+   /* Allocate a pixmap of the same size.  */
+-  *pixmap = XCreatePixmap (display, window, width, height, depth);
++  *pixmap = XCreatePixmap (display, drawable, width, height, depth);
+   if (*pixmap == NO_PIXMAP)
+     {
+       x_destroy_x_image (*ximg);
+@@ -2742,7 +2742,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
+   img->pixmap =
+    (x_check_image_size (0, img->width, img->height)
+     ? XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
+-				   FRAME_X_WINDOW (f),
++                                   FRAME_X_DRAWABLE (f),
+ 				   data,
+ 				   img->width, img->height,
+ 				   fg, bg,
+@@ -3520,7 +3520,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
+   xpm_init_color_cache (f, &attrs);
+ #endif
+ 
+-  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				(char **) bits, &bitmap, &mask, &attrs);
+   if (rc != XpmSuccess)
+     {
+@@ -3758,7 +3758,7 @@ xpm_load (struct frame *f, struct image *img)
+ #ifdef HAVE_X_WINDOWS
+   if (rc == XpmSuccess)
+     {
+-      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				   img->ximg->width, img->ximg->height,
+ 				   img->ximg->depth);
+       if (img->pixmap == NO_PIXMAP)
+@@ -3768,7 +3768,7 @@ xpm_load (struct frame *f, struct image *img)
+ 	}
+       else if (img->mask_img)
+ 	{
+-	  img->mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++          img->mask = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				     img->mask_img->width,
+ 				     img->mask_img->height,
+ 				     img->mask_img->depth);
+@@ -9541,7 +9541,7 @@ gs_load (struct frame *f, struct image *img)
+     {
+       /* Only W32 version did BLOCK_INPUT here.  ++kfs */
+       block_input ();
+-      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 				   img->width, img->height,
+ 				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+       unblock_input ();
+@@ -9557,7 +9557,7 @@ gs_load (struct frame *f, struct image *img)
+      if successful.  We do not record_unwind_protect here because
+      other places in redisplay like calling window scroll functions
+      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
+-  printnum1 = FRAME_X_WINDOW (f);
++  printnum1 = FRAME_X_DRAWABLE (f);
+   printnum2 = img->pixmap;
+   window_and_pixmap_id
+     = make_formatted_string (buffer, "%"pMu" %"pMu, printnum1, printnum2);
+diff --git a/src/nsfns.m b/src/nsfns.m
+index ce2622c..b826460 100644
+--- a/src/nsfns.m
++++ b/src/nsfns.m
+@@ -971,6 +971,7 @@ frame_parm_handler ns_frame_parm_handlers[] =
+   x_set_alpha,
+   0, /* x_set_sticky */
+   0, /* x_set_tool_bar_position */
++  0, /* x_set_inhibit_double_buffering */
+ };
+ 
+ 
+diff --git a/src/termhooks.h b/src/termhooks.h
+index ff74d99..03416cb 100644
+--- a/src/termhooks.h
++++ b/src/termhooks.h
+@@ -631,6 +631,11 @@ struct terminal
+   /* Called when a frame's display becomes entirely up to date.  */
+   void (*frame_up_to_date_hook) (struct frame *);
+ 
++  /* Called when buffer flipping becomes unblocked after having
++     previously been blocked.  Redisplay always blocks buffer flips
++     while it runs.  */
++  void (*buffer_flipping_unblocked_hook) (struct frame *);
++
+ 
+   /* Called to delete the device-specific portions of a frame that is
+      on this terminal device. */
+diff --git a/src/w32fns.c b/src/w32fns.c
+index 2b07bb2..1d83b02 100644
+--- a/src/w32fns.c
++++ b/src/w32fns.c
+@@ -9757,6 +9757,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
+   x_set_alpha,
+   0, /* x_set_sticky */
+   0, /* x_set_tool_bar_position */
++  0, /* x_set_inhibit_double_buffering */
+ };
+ 
+ void
+diff --git a/src/xdisp.c b/src/xdisp.c
+index 1a27c4c..6e8af8a 100644
+--- a/src/xdisp.c
++++ b/src/xdisp.c
+@@ -2501,7 +2501,7 @@ remember_mouse_glyph (struct frame *f, int gx, int gy, NativeRectangle *rect)
+ 
+   /* Visible feedback for debugging.  */
+ #if false && defined HAVE_X_WINDOWS
+-  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 		  f->output_data.x->normal_gc,
+ 		  gx, gy, width, height);
+ #endif
+@@ -11349,7 +11349,7 @@ clear_garbaged_frames (void)
+ 	      fset_redisplay (f);
+ 	      f->garbaged = false;
+ 	      f->resized_p = false;
+-	    }
++            }
+ 	}
+ 
+       frame_garbaged = false;
+@@ -13573,6 +13573,7 @@ redisplay_internal (void)
+   count = SPECPDL_INDEX ();
+   record_unwind_protect_void (unwind_redisplay);
+   redisplaying_p = true;
++  block_buffer_flips ();
+   specbind (Qinhibit_free_realized_faces, Qnil);
+ 
+   /* Record this function, so it appears on the profiler's backtraces.  */
+@@ -14070,7 +14071,23 @@ redisplay_internal (void)
+ 		     use them in update_frame will segfault.
+ 		     Therefore, we must redisplay this frame.  */
+ 		  if (!f_redisplay_flag && f->redisplay)
+-		    goto retry_frame;
++                    goto retry_frame;
++
++                  /* In some case (e.g., window resize), we notice
++                     only during window updating that the window
++                     content changed unpredictably (e.g., a GTK
++                     scrollbar moved) and that our previous estimation
++                     of the frame content was garbage.  We have to
++                     start over.  These cases should be rare, so going
++                     all the way back to the top of redisplay should
++                     be good enough.
++
++                     Why FRAME_WINDOW_P? See
++                     https://lists.gnu.org/archive/html/emacs-devel/2016-10/msg00957.html
++
++                     */
++                  if (FRAME_GARBAGED_P (f) && FRAME_WINDOW_P (f))
++                    goto retry;
+ 
+ 		  /* Prevent various kinds of signals during display
+ 		     update.  stdio is not robust about handling
+@@ -14297,6 +14314,11 @@ redisplay_internal (void)
+   RESUME_POLLING;
+ }
+ 
++static void
++unwind_redisplay_preserve_echo_area (void)
++{
++  unblock_buffer_flips ();
++}
+ 
+ /* Redisplay, but leave alone any recent echo area message unless
+    another message has been requested in its place.
+@@ -14314,6 +14336,12 @@ redisplay_preserve_echo_area (int from_where)
+ {
+   TRACE ((stderr, "redisplay_preserve_echo_area (%d)\n", from_where));
+ 
++  block_input ();
++  ptrdiff_t count = SPECPDL_INDEX ();
++  record_unwind_protect_void (unwind_redisplay_preserve_echo_area);
++  block_buffer_flips ();
++  unblock_input ();
++
+   if (!NILP (echo_area_buffer[1]))
+     {
+       /* We have a previously displayed message, but no current
+@@ -14326,6 +14354,7 @@ redisplay_preserve_echo_area (int from_where)
+     redisplay_internal ();
+ 
+   flush_frame (SELECTED_FRAME ());
++  unbind_to (count, Qnil);
+ }
+ 
+ 
+@@ -14335,6 +14364,7 @@ static void
+ unwind_redisplay (void)
+ {
+   redisplaying_p = false;
++  unblock_buffer_flips ();
+ }
+ 
+ 
+@@ -14444,6 +14474,38 @@ disp_char_vector (struct Lisp_Char_Table *dp, int c)
+   return val;
+ }
+ 
++static int buffer_flip_blocked_depth;
++
++void
++block_buffer_flips(void)
++{
++  eassert (buffer_flip_blocked_depth >= 0);
++  buffer_flip_blocked_depth++;
++}
++
++void
++unblock_buffer_flips(void)
++{
++  eassert (buffer_flip_blocked_depth > 0);
++  if (--buffer_flip_blocked_depth == 0)
++    {
++      Lisp_Object tail, frame;
++      block_input ();
++      FOR_EACH_FRAME (tail, frame)
++        {
++          struct frame *f = XFRAME (frame);
++          if (FRAME_TERMINAL (f)->buffer_flipping_unblocked_hook)
++            (*FRAME_TERMINAL (f)->buffer_flipping_unblocked_hook) (f);
++        }
++      unblock_input ();
++    }
++}
++
++bool
++buffer_flipping_blocked_p (void)
++{
++  return buffer_flip_blocked_depth > 0;
++}
+ 
+ 
+ /***********************************************************************
+@@ -24626,7 +24688,6 @@ init_glyph_string (struct glyph_string *s,
+   s->hdc = hdc;
+ #endif
+   s->display = FRAME_X_DISPLAY (s->f);
+-  s->window = FRAME_X_WINDOW (s->f);
+   s->char2b = char2b;
+   s->hl = hl;
+   s->row = row;
+diff --git a/src/xfaces.c b/src/xfaces.c
+index 5837f35..accb98b 100644
+--- a/src/xfaces.c
++++ b/src/xfaces.c
+@@ -495,7 +495,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
+ {
+   GC gc;
+   block_input ();
+-  gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), mask, xgcv);
++  gc = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), mask, xgcv);
+   unblock_input ();
+   IF_DEBUG (++ngcs);
+   return gc;
+diff --git a/src/xfns.c b/src/xfns.c
+index 8571d0e..3438c8e 100644
+--- a/src/xfns.c
++++ b/src/xfns.c
+@@ -53,6 +53,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+ #include "gtkutil.h"
+ #endif
+ 
++#ifdef HAVE_XDBE
++#include <X11/extensions/Xdbe.h>
++#endif
++
+ #ifdef USE_X_TOOLKIT
+ #include <X11/Shell.h>
+ 
+@@ -114,6 +118,7 @@ static int dpyinfo_refcount;
+ #endif
+ 
+ static struct x_display_info *x_display_info_for_name (Lisp_Object);
++static void set_up_x_back_buffer (struct frame *f);
+ 
+ /* Let the user specify an X display with a Lisp object.
+    OBJECT may be nil, a frame or a terminal object.
+@@ -701,6 +706,35 @@ x_set_tool_bar_position (struct frame *f,
+     wrong_choice (choice, new_value);
+ }
+ 
++static void
++x_set_inhibit_double_buffering (struct frame *f,
++                                Lisp_Object new_value,
++                                Lisp_Object old_value)
++{
++  block_input ();
++  if (FRAME_X_WINDOW (f) && !EQ (new_value, old_value))
++    {
++      bool want_double_buffering = NILP (new_value);
++      bool was_double_buffered = FRAME_X_DOUBLE_BUFFERED_P (f);
++      /* font_drop_xrender_surfaces in xftfont does something only if
++         we're double-buffered, so call font_drop_xrender_surfaces before
++         and after any potential change.  One of the calls will end up
++         being a no-op.  */
++      if (want_double_buffering != was_double_buffered)
++        font_drop_xrender_surfaces (f);
++      if (FRAME_X_DOUBLE_BUFFERED_P (f) && !want_double_buffering)
++        tear_down_x_back_buffer (f);
++      else if (!FRAME_X_DOUBLE_BUFFERED_P (f) && want_double_buffering)
++        set_up_x_back_buffer (f);
++      if (FRAME_X_DOUBLE_BUFFERED_P (f) != was_double_buffered)
++        {
++          SET_FRAME_GARBAGED (f);
++          font_drop_xrender_surfaces (f);
++        }
++    }
++  unblock_input ();
++}
++
+ #ifdef USE_GTK
+ 
+ /* Set icon from FILE for frame F.  By using GTK functions the icon
+@@ -2483,6 +2517,72 @@ xic_set_xfontset (struct frame *f, const char *base_fontname)
+ 
+ 
+ 
++
++void
++x_mark_frame_dirty (struct frame *f)
++{
++  if (FRAME_X_DOUBLE_BUFFERED_P (f) && !FRAME_X_NEED_BUFFER_FLIP (f))
++    FRAME_X_NEED_BUFFER_FLIP (f) = true;
++}
++
++static void
++set_up_x_back_buffer (struct frame *f)
++{
++#ifdef HAVE_XDBE
++  block_input ();
++  if (FRAME_X_WINDOW (f) && !FRAME_X_DOUBLE_BUFFERED_P (f))
++    {
++      FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
++      if (FRAME_DISPLAY_INFO (f)->supports_xdbe)
++        {
++          /* If allocating a back buffer fails, either because the
++             server ran out of memory or we don't have the right kind
++             of visual, just use single-buffered rendering.  */
++          x_catch_errors (FRAME_X_DISPLAY (f));
++          FRAME_X_RAW_DRAWABLE (f) = XdbeAllocateBackBufferName (
++            FRAME_X_DISPLAY (f),
++            FRAME_X_WINDOW (f),
++            XdbeCopied);
++          if (x_had_errors_p (FRAME_X_DISPLAY (f)))
++            FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
++          x_uncatch_errors_after_check ();
++        }
++    }
++  unblock_input ();
++#endif
++}
++
++void
++tear_down_x_back_buffer (struct frame *f)
++{
++#ifdef HAVE_XDBE
++  block_input ();
++  if (FRAME_X_WINDOW (f) && FRAME_X_DOUBLE_BUFFERED_P (f))
++    {
++      if (FRAME_X_DOUBLE_BUFFERED_P (f))
++        {
++          XdbeDeallocateBackBufferName (FRAME_X_DISPLAY (f),
++                                        FRAME_X_DRAWABLE (f));
++          FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
++        }
++    }
++  unblock_input ();
++#endif
++}
++
++/* Set up double buffering if the frame parameters don't prohibit
++   it.  */
++void
++initial_set_up_x_back_buffer (struct frame *f)
++{
++  block_input ();
++  eassert (FRAME_X_WINDOW (f));
++  FRAME_X_RAW_DRAWABLE (f) = FRAME_X_WINDOW (f);
++  if (NILP (CDR (Fassq (Qinhibit_double_buffering, f->param_alist))))
++    set_up_x_back_buffer (f);
++  unblock_input ();
++}
++
+ #ifdef USE_X_TOOLKIT
+ 
+ /* Create and set up the X widget for frame F.  */
+@@ -2638,7 +2738,7 @@ x_window (struct frame *f, long window_prompting)
+ 		     f->output_data.x->parent_desc, 0, 0);
+ 
+   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
+-
++  initial_set_up_x_back_buffer (f);
+   validate_x_resource_name ();
+ 
+   class_hints.res_name = SSDATA (Vx_resource_name);
+@@ -2784,7 +2884,8 @@ x_window (struct frame *f)
+ 		     CopyFromParent, /* depth */
+ 		     InputOutput, /* class */
+ 		     FRAME_X_VISUAL (f),
+-		     attribute_mask, &attributes);
++                     attribute_mask, &attributes);
++  initial_set_up_x_back_buffer (f);
+ 
+ #ifdef HAVE_X_I18N
+   if (use_xim)
+@@ -2938,7 +3039,7 @@ x_make_gc (struct frame *f)
+   gc_values.line_width = 0;	/* Means 1 using fast algorithm.  */
+   f->output_data.x->normal_gc
+     = XCreateGC (FRAME_X_DISPLAY (f),
+-		 FRAME_X_WINDOW (f),
++                 FRAME_X_DRAWABLE (f),
+ 		 GCLineWidth | GCForeground | GCBackground,
+ 		 &gc_values);
+ 
+@@ -2947,7 +3048,7 @@ x_make_gc (struct frame *f)
+   gc_values.background = FRAME_FOREGROUND_PIXEL (f);
+   f->output_data.x->reverse_gc
+     = XCreateGC (FRAME_X_DISPLAY (f),
+-		 FRAME_X_WINDOW (f),
++                 FRAME_X_DRAWABLE (f),
+ 		 GCForeground | GCBackground | GCLineWidth,
+ 		 &gc_values);
+ 
+@@ -2956,7 +3057,7 @@ x_make_gc (struct frame *f)
+   gc_values.background = f->output_data.x->cursor_pixel;
+   gc_values.fill_style = FillOpaqueStippled;
+   f->output_data.x->cursor_gc
+-    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++    = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 		 (GCForeground | GCBackground
+ 		  | GCFillStyle | GCLineWidth),
+ 		 &gc_values);
+@@ -3463,6 +3564,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
+ 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
+   x_default_parameter (f, parms, Qtool_bar_position,
+                        FRAME_TOOL_BAR_POSITION (f), 0, 0, RES_TYPE_SYMBOL);
++  x_default_parameter (f, parms, Qinhibit_double_buffering, Qnil,
++                       "inhibitDoubleBuffering", "InhibitDoubleBuffering",
++                       RES_TYPE_BOOLEAN);
+ 
+   /* Compute the size of the X window.  */
+   window_prompting = x_figure_window_size (f, parms, true, &x_width, &x_height);
+@@ -5636,7 +5740,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms)
+ 		       /* Border.  */
+ 		       f->border_width,
+ 		       CopyFromParent, InputOutput, CopyFromParent,
+-		       mask, &attrs);
++                       mask, &attrs);
++    initial_set_up_x_back_buffer (f);
+     XChangeProperty (FRAME_X_DISPLAY (f), tip_window,
+                      FRAME_DISPLAY_INFO (f)->Xatom_net_window_type,
+                      XA_ATOM, 32, PropModeReplace,
+@@ -6213,6 +6318,15 @@ Value is t if tooltip was open, nil otherwise.  */)
+   return x_hide_tip (!tooltip_reuse_hidden_frame);
+ }
+ 
++DEFUN ("x-double-buffered-p", Fx_double_buffered_p, Sx_double_buffered_p,
++       0, 1, 0,
++       doc: /* Return t if FRAME is being double buffered.  */)
++     (Lisp_Object frame)
++{
++  struct frame *f = decode_live_frame (frame);
++  return FRAME_X_DOUBLE_BUFFERED_P (f) ? Qt : Qnil;
++}
++
+ 
+ /***********************************************************************
+ 			File selection dialog
+@@ -6864,6 +6978,7 @@ frame_parm_handler x_frame_parm_handlers[] =
+   x_set_alpha,
+   x_set_sticky,
+   x_set_tool_bar_position,
++  x_set_inhibit_double_buffering,
+ };
+ 
+ void
+@@ -7080,6 +7195,7 @@ When using Gtk+ tooltips, the tooltip face is not used.  */);
+ 
+   defsubr (&Sx_show_tip);
+   defsubr (&Sx_hide_tip);
++  defsubr (&Sx_double_buffered_p);
+   tip_timer = Qnil;
+   staticpro (&tip_timer);
+   tip_frame = Qnil;
+diff --git a/src/xfont.c b/src/xfont.c
+index 45b0e0a..c2b7317 100644
+--- a/src/xfont.c
++++ b/src/xfont.c
+@@ -1057,20 +1057,20 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+ 	{
+ 	  if (s->padding_p)
+ 	    for (i = 0; i < len; i++)
+-	      XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++              XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 				gc, x + i, y, str + i, 1);
+ 	  else
+-	    XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++            XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			      gc, x, y, str, len);
+ 	}
+       else
+ 	{
+ 	  if (s->padding_p)
+ 	    for (i = 0; i < len; i++)
+-	      XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++              XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			   gc, x + i, y, str + i, 1);
+ 	  else
+-	    XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++            XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			 gc, x, y, str, len);
+ 	}
+       unblock_input ();
+@@ -1083,20 +1083,20 @@ xfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+     {
+       if (s->padding_p)
+ 	for (i = 0; i < len; i++)
+-	  XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++          XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			      gc, x + i, y, s->char2b + from + i, 1);
+       else
+-	XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++        XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			    gc, x, y, s->char2b + from, len);
+     }
+   else
+     {
+       if (s->padding_p)
+ 	for (i = 0; i < len; i++)
+-	  XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++          XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 			 gc, x + i, y, s->char2b + from + i, 1);
+       else
+-	XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
++        XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_DRAWABLE (s->f),
+ 		       gc, x, y, s->char2b + from, len);
+     }
+   unblock_input ();
+diff --git a/src/xftfont.c b/src/xftfont.c
+index 34c6f7d..861ad80 100644
+--- a/src/xftfont.c
++++ b/src/xftfont.c
+@@ -586,7 +586,7 @@ xftfont_get_xft_draw (struct frame *f)
+     {
+       block_input ();
+       xft_draw= XftDrawCreate (FRAME_X_DISPLAY (f),
+-			       FRAME_X_WINDOW (f),
++                               FRAME_X_DRAWABLE (f),
+ 			       FRAME_X_VISUAL (f),
+ 			       FRAME_X_COLORMAP (f));
+       unblock_input ();
+@@ -600,6 +600,8 @@ static int
+ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+               bool with_background)
+ {
++  block_input ();
++
+   struct frame *f = s->f;
+   struct face *face = s->face;
+   struct xftfont_info *xftfont_info = (struct xftfont_info *) s->font;
+@@ -614,7 +616,6 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+     xftface_info = (struct xftface_info *) face->extra;
+   xftfont_get_colors (f, face, s->gc, xftface_info,
+ 		      &fg, with_background ? &bg : NULL);
+-  block_input ();
+   if (s->num_clips > 0)
+     XftDrawSetClipRectangles (xft_draw, 0, 0, s->clip, s->num_clips);
+   else
+@@ -652,9 +653,12 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y,
+ 		     x + i, y, code + i, 1);
+   else
+     XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
+-		   x, y, code, len);
++                   x, y, code, len);
++  /* Need to explicitly mark the frame dirty because we didn't call
++     FRAME_X_DRAWABLE in order to draw: we cached the drawable in the
++     XftDraw structure.  */
++  x_mark_frame_dirty (f);
+   unblock_input ();
+-
+   return len;
+ }
+ 
+@@ -678,13 +682,10 @@ xftfont_shape (Lisp_Object lgstring)
+ static int
+ xftfont_end_for_frame (struct frame *f)
+ {
++  block_input ();
+   XftDraw *xft_draw;
+ 
+-  /* Don't do anything if display is dead */
+-  if (FRAME_X_DISPLAY (f) == NULL) return 0;
+-
+   xft_draw = font_get_frame_data (f, Qxft);
+-
+   if (xft_draw)
+     {
+       block_input ();
+@@ -692,9 +693,19 @@ xftfont_end_for_frame (struct frame *f)
+       unblock_input ();
+       font_put_frame_data (f, Qxft, NULL);
+     }
++  unblock_input ();
+   return 0;
+ }
+ 
++static void
++xftfont_drop_xrender_surfaces (struct frame *f)
++{
++  block_input ();
++  if (FRAME_X_DOUBLE_BUFFERED_P (f))
++    xftfont_end_for_frame (f);
++  unblock_input ();
++}
++
+ static bool
+ xftfont_cached_font_ok (struct frame *f, Lisp_Object font_object,
+                         Lisp_Object entity)
+@@ -777,6 +788,10 @@ This is needed with some fonts to correct vertical overlap of glyphs.  */);
+ #if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
+   xftfont_driver.shape = xftfont_shape;
+ #endif
++  /* When using X double buffering, the XftDraw structure we build
++   seems to be useless once a frame is resized, so recreate it on
++   ConfigureNotify and in some other cases.  */
++  xftfont_driver.drop_xrender_surfaces = xftfont_drop_xrender_surfaces;
+ 
+   register_font_driver (&xftfont_driver, NULL);
+ }
+diff --git a/src/xterm.c b/src/xterm.c
+index 7476694..f0dd0ca 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -45,6 +45,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+ #include <X11/extensions/Xrender.h>
+ #endif
+ 
++#ifdef HAVE_XDBE
++#include <X11/extensions/Xdbe.h>
++#endif
++
+ /* Load sys/types.h if not already loaded.
+    In some systems loading it twice is suicidal.  */
+ #ifndef makedev
+@@ -360,7 +364,7 @@ x_begin_cr_clip (struct frame *f, GC gc)
+         {
+           cairo_surface_t *surface;
+           surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+-                                               FRAME_X_WINDOW (f),
++                                               FRAME_X_DRAWABLE (f),
+                                                FRAME_DISPLAY_INFO (f)->visual,
+                                                FRAME_PIXEL_WIDTH (f),
+                                                FRAME_PIXEL_HEIGHT (f));
+@@ -722,7 +726,7 @@ x_fill_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+   cairo_fill (cr);
+   x_end_cr_clip (f);
+ #else
+-  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 		  gc, x, y, width, height);
+ #endif
+ }
+@@ -740,7 +744,7 @@ x_draw_rectangle (struct frame *f, GC gc, int x, int y, int width, int height)
+   cairo_stroke (cr);
+   x_end_cr_clip (f);
+ #else
+-  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 		  gc, x, y, width, height);
+ #endif
+ }
+@@ -756,7 +760,10 @@ x_clear_window (struct frame *f)
+   cairo_paint (cr);
+   x_end_cr_clip (f);
+ #else
+-  XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
++  if (FRAME_X_DOUBLE_BUFFERED_P (f))
++    x_clear_area (f, 0, 0, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
++  else
++    XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+ #endif
+ }
+ 
+@@ -1067,7 +1074,7 @@ x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
+ #ifdef USE_CAIRO
+   x_fill_rectangle (f, f->output_data.x->normal_gc, x, y0, 1, y1 - y0);
+ #else
+-  XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++  XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f),
+ 	     f->output_data.x->normal_gc, x, y0, x, y1);
+ #endif
+ }
+@@ -1175,6 +1182,41 @@ x_update_window_end (struct window *w, bool cursor_on_p,
+     }
+ }
+ 
++/* Show the frame back buffer.  If frame is double-buffered,
++   atomically publish to the user's screen graphics updates made since
++   the last call to show_back_buffer.  */
++static void
++show_back_buffer (struct frame *f)
++{
++  block_input ();
++  if (FRAME_X_DOUBLE_BUFFERED_P (f))
++    {
++#ifdef HAVE_XDBE
++      XdbeSwapInfo swap_info;
++      memset (&swap_info, 0, sizeof (swap_info));
++      swap_info.swap_window = FRAME_X_WINDOW (f);
++      swap_info.swap_action = XdbeCopied;
++      XdbeSwapBuffers (FRAME_X_DISPLAY (f), &swap_info, 1);
++#else
++      eassert (!"should have back-buffer only with XDBE");
++#endif
++    }
++  FRAME_X_NEED_BUFFER_FLIP (f) = false;
++  unblock_input ();
++}
++
++/* Updates back buffer and flushes changes to display.  Called from
++   minibuf read code.  Note that we display the back buffer even if
++   buffer flipping is blocked.  */
++static void
++x_flip_and_flush (struct frame *f)
++{
++  block_input ();
++  if (FRAME_X_NEED_BUFFER_FLIP (f))
++      show_back_buffer (f);
++  x_flush (f);
++  unblock_input ();
++}
+ 
+ /* End update of frame F.  This function is installed as a hook in
+    update_end.  */
+@@ -1207,7 +1249,7 @@ x_update_end (struct frame *f)
+           if (! FRAME_EXTERNAL_MENU_BAR (f))
+             height += FRAME_MENU_BAR_HEIGHT (f);
+           surface = cairo_xlib_surface_create (FRAME_X_DISPLAY (f),
+-                                               FRAME_X_WINDOW (f),
++                                               FRAME_X_DRAWABLE (f),
+                                                FRAME_DISPLAY_INFO (f)->visual,
+                                                width,
+                                                height);
+@@ -1220,7 +1262,7 @@ x_update_end (struct frame *f)
+       cairo_destroy (cr);
+       unblock_input ();
+     }
+-#endif /* USE_CAIRO */
++#endif
+ 
+ #ifndef XFlush
+   block_input ();
+@@ -1229,17 +1271,26 @@ x_update_end (struct frame *f)
+ #endif
+ }
+ 
+-
+ /* This function is called from various places in xdisp.c
+    whenever a complete update has been performed.  */
+ 
+ static void
+ XTframe_up_to_date (struct frame *f)
+ {
+-  if (FRAME_X_P (f))
+-    FRAME_MOUSE_UPDATE (f);
++  eassert (FRAME_X_P (f));
++  block_input ();
++  FRAME_MOUSE_UPDATE (f);
++  if (!buffer_flipping_blocked_p () && FRAME_X_NEED_BUFFER_FLIP (f))
++    show_back_buffer (f);
++  unblock_input ();
+ }
+ 
++static void
++XTbuffer_flipping_unblocked_hook (struct frame *f)
++{
++  if (FRAME_X_NEED_BUFFER_FLIP (f))
++    show_back_buffer (f);
++}
+ 
+ /* Clear under internal border if any (GTK has its own version). */
+ #ifndef USE_GTK
+@@ -1354,7 +1405,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
+ #else  /* not USE_CAIRO */
+   if (p->which)
+     {
+-      Window window = FRAME_X_WINDOW (f);
++      Drawable drawable = FRAME_X_DRAWABLE (f);
+       char *bits;
+       Pixmap pixmap, clipmask = (Pixmap) 0;
+       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
+@@ -1367,7 +1418,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
+ 
+       /* Draw the bitmap.  I believe these small pixmaps can be cached
+ 	 by the server.  */
+-      pixmap = XCreatePixmapFromBitmapData (display, window, bits, p->wd, p->h,
++      pixmap = XCreatePixmapFromBitmapData (display, drawable, bits, p->wd, p->h,
+ 					    (p->cursor_p
+ 					     ? (p->overlay_p ? face->background
+ 						: f->output_data.x->cursor_pixel)
+@@ -1386,7 +1437,7 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
+ 	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+ 	}
+ 
+-      XCopyArea (display, pixmap, window, gc, 0, 0,
++      XCopyArea (display, pixmap, drawable, gc, 0, 0,
+ 		 p->wd, p->h, p->x, p->y);
+       XFreePixmap (display, pixmap);
+ 
+@@ -1487,7 +1538,7 @@ x_set_cursor_gc (struct glyph_string *s)
+ 		   mask, &xgcv);
+       else
+ 	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
+-	  = XCreateGC (s->display, s->window, mask, &xgcv);
++          = XCreateGC (s->display, FRAME_X_DRAWABLE (s->f), mask, &xgcv);
+ 
+       s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+     }
+@@ -1534,7 +1585,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
+ 		   mask, &xgcv);
+       else
+ 	FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc
+-	  = XCreateGC (s->display, s->window, mask, &xgcv);
++          = XCreateGC (s->display, FRAME_X_DRAWABLE (s->f), mask, &xgcv);
+ 
+       s->gc = FRAME_DISPLAY_INFO (s->f)->scratch_cursor_gc;
+ 
+@@ -2565,7 +2616,7 @@ x_setup_relief_color (struct frame *f, struct relief *relief, double factor,
+     {
+       xgcv.stipple = dpyinfo->gray;
+       mask |= GCStipple;
+-      relief->gc = XCreateGC (dpy, FRAME_X_WINDOW (f), mask, &xgcv);
++      relief->gc = XCreateGC (dpy, FRAME_X_DRAWABLE (f), mask, &xgcv);
+     }
+   else
+     XChangeGC (dpy, relief->gc, mask, &xgcv);
+@@ -2696,7 +2747,7 @@ x_draw_relief_rect (struct frame *f,
+   x_reset_clip_rectangles (f, bottom_right_gc);
+ #else
+   Display *dpy = FRAME_X_DISPLAY (f);
+-  Window window = FRAME_X_WINDOW (f);
++  Drawable drawable = FRAME_X_DRAWABLE (f);
+   int i;
+   GC gc;
+ 
+@@ -2715,12 +2766,12 @@ x_draw_relief_rect (struct frame *f,
+   if (top_p)
+     {
+       if (width == 1)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   left_x + left_p, top_y,
+ 		   right_x + !right_p, top_y);
+ 
+       for (i = 1; i < width; ++i)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   left_x  + i * left_p, top_y + i,
+ 		   right_x + 1 - i * right_p, top_y + i);
+     }
+@@ -2729,13 +2780,13 @@ x_draw_relief_rect (struct frame *f,
+   if (left_p)
+     {
+       if (width == 1)
+-	XDrawLine (dpy, window, gc, left_x, top_y + 1, left_x, bottom_y);
++        XDrawLine (dpy, drawable, gc, left_x, top_y + 1, left_x, bottom_y);
+ 
+-      XClearArea (dpy, window, left_x, top_y, 1, 1, False);
+-      XClearArea (dpy, window, left_x, bottom_y, 1, 1, False);
++      x_clear_area(f, left_x, top_y, 1, 1);
++      x_clear_area(f, left_x, bottom_y, 1, 1);
+ 
+       for (i = (width > 1 ? 1 : 0); i < width; ++i)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   left_x + i, top_y + (i + 1) * top_p,
+ 		   left_x + i, bottom_y + 1 - (i + 1) * bot_p);
+     }
+@@ -2751,23 +2802,23 @@ x_draw_relief_rect (struct frame *f,
+     {
+       /* Outermost top line.  */
+       if (top_p)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   left_x  + left_p, top_y,
+ 		   right_x + !right_p, top_y);
+ 
+       /* Outermost left line.  */
+       if (left_p)
+-	XDrawLine (dpy, window, gc, left_x, top_y + 1, left_x, bottom_y);
++        XDrawLine (dpy, drawable, gc, left_x, top_y + 1, left_x, bottom_y);
+     }
+ 
+   /* Bottom.  */
+   if (bot_p)
+     {
+-      XDrawLine (dpy, window, gc,
++      XDrawLine (dpy, drawable, gc,
+ 		 left_x + left_p, bottom_y,
+ 		 right_x + !right_p, bottom_y);
+       for (i = 1; i < width; ++i)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   left_x  + i * left_p, bottom_y - i,
+ 		   right_x + 1 - i * right_p, bottom_y - i);
+     }
+@@ -2775,10 +2826,10 @@ x_draw_relief_rect (struct frame *f,
+   /* Right.  */
+   if (right_p)
+     {
+-      XClearArea (dpy, window, right_x, top_y, 1, 1, False);
+-      XClearArea (dpy, window, right_x, bottom_y, 1, 1, False);
++      x_clear_area(f, right_x, top_y, 1, 1);
++      x_clear_area(f, right_x, bottom_y, 1, 1);
+       for (i = 0; i < width; ++i)
+-	XDrawLine (dpy, window, gc,
++        XDrawLine (dpy, drawable, gc,
+ 		   right_x - i, top_y + (i + 1) * top_p,
+ 		   right_x - i, bottom_y + 1 - (i + 1) * bot_p);
+     }
+@@ -2930,7 +2981,8 @@ x_draw_image_foreground (struct glyph_string *s)
+ 	  image_rect.width = s->slice.width;
+ 	  image_rect.height = s->slice.height;
+ 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
+-	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
++            XCopyArea (s->display, s->img->pixmap,
++                       FRAME_X_DRAWABLE (s->f), s->gc,
+ 		       s->slice.x + r.x - x, s->slice.y + r.y - y,
+ 		       r.width, r.height, r.x, r.y);
+ 	}
+@@ -2944,7 +2996,8 @@ x_draw_image_foreground (struct glyph_string *s)
+ 	  image_rect.width = s->slice.width;
+ 	  image_rect.height = s->slice.height;
+ 	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
+-	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
++            XCopyArea (s->display, s->img->pixmap,
++                       FRAME_X_DRAWABLE (s->f), s->gc,
+ 		       s->slice.x + r.x - x, s->slice.y + r.y - y,
+ 		       r.width, r.height, r.x, r.y);
+ 
+@@ -3184,7 +3237,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
+ 	  int depth = DefaultDepthOfScreen (screen);
+ 
+ 	  /* Create a pixmap as large as the glyph string.  */
+- 	  pixmap = XCreatePixmap (s->display, s->window,
++          pixmap = XCreatePixmap (s->display, FRAME_X_DRAWABLE (s->f),
+ 				  s->background_width,
+ 				  s->height, depth);
+ 
+@@ -3259,7 +3312,7 @@ x_draw_image_glyph_string (struct glyph_string *s)
+     {
+       x_draw_image_foreground_1 (s, pixmap);
+       x_set_glyph_string_clipping (s);
+-      XCopyArea (s->display, pixmap, s->window, s->gc,
++      XCopyArea (s->display, pixmap, FRAME_X_DRAWABLE (s->f), s->gc,
+ 		 0, 0, s->background_width, s->height, s->x, s->y);
+       XFreePixmap (s->display, pixmap);
+     }
+@@ -3438,7 +3491,7 @@ x_draw_underwave (struct glyph_string *s)
+ 
+   while (x1 <= xmax)
+     {
+-      XDrawLine (s->display, s->window, s->gc, x1, y1, x2, y2);
++      XDrawLine (s->display, FRAME_X_DRAWABLE (s->f), s->gc, x1, y1, x2, y2);
+       x1  = x2, y1 = y2;
+       x2 += dx, y2 = y0 + odd*dy;
+       odd = !odd;
+@@ -3741,7 +3794,7 @@ x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height,
+ /* Never called on a GUI frame, see
+    http://lists.gnu.org/archive/html/emacs-devel/2015-05/msg00456.html
+ */
+-  XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
++  XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
+ 	     f->output_data.x->normal_gc,
+ 	     x, y, width, height,
+ 	     x + shift_by, y);
+@@ -3782,8 +3835,14 @@ x_clear_area (struct frame *f, int x, int y, int width, int height)
+   cairo_fill (cr);
+   x_end_cr_clip (f);
+ #else
+-  x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+-		 x, y, width, height, False);
++    if (FRAME_X_DOUBLE_BUFFERED_P (f))
++      XFillRectangle (FRAME_X_DISPLAY (f),
++                      FRAME_X_DRAWABLE (f),
++                      f->output_data.x->reverse_gc,
++                      x, y, width, height);
++  else
++    x_clear_area1 (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
++                   x, y, width, height, False);
+ #endif
+ }
+ 
+@@ -3799,19 +3858,13 @@ x_clear_frame (struct frame *f)
+ 
+   block_input ();
+ 
++  font_drop_xrender_surfaces (f);
+   x_clear_window (f);
+ 
+   /* We have to clear the scroll bars.  If we have changed colors or
+      something like that, then they should be notified.  */
+   x_scroll_bar_clear (f);
+ 
+-#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
+-  /* Make sure scroll bars are redrawn.  As they aren't redrawn by
+-     redisplay, do it here.  */
+-  if (FRAME_GTK_WIDGET (f))
+-    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+-#endif
+-
+   XFlush (FRAME_X_DISPLAY (f));
+ 
+   unblock_input ();
+@@ -4109,7 +4162,7 @@ x_scroll_run (struct window *w, struct run *run)
+   SET_FRAME_GARBAGED (f);
+ #else
+   XCopyArea (FRAME_X_DISPLAY (f),
+-	     FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
++             FRAME_X_DRAWABLE (f), FRAME_X_DRAWABLE (f),
+ 	     f->output_data.x->normal_gc,
+ 	     x, from_y,
+ 	     width, height,
+@@ -7448,6 +7501,26 @@ x_net_wm_state (struct frame *f, Window window)
+ /**   store_frame_param (f, Qsticky, sticky ? Qt : Qnil); **/
+ }
+ 
++/* Flip back buffers on any frames with undrawn content.  */
++static void
++flush_dirty_back_buffers (void)
++{
++  block_input ();
++  Lisp_Object tail, frame;
++  FOR_EACH_FRAME (tail, frame)
++    {
++      struct frame *f = XFRAME (frame);
++      if (FRAME_LIVE_P (f) &&
++          FRAME_X_P (f) &&
++          FRAME_X_WINDOW (f) &&
++          !FRAME_GARBAGED_P (f) &&
++          !buffer_flipping_blocked_p () &&
++          FRAME_X_NEED_BUFFER_FLIP (f))
++        show_back_buffer (f);
++    }
++  unblock_input ();
++}
++
+ /* Handles the XEvent EVENT on display DPYINFO.
+ 
+    *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
+@@ -7766,23 +7839,49 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+         {
+           if (!FRAME_VISIBLE_P (f))
+             {
++              block_input ();
+               SET_FRAME_VISIBLE (f, 1);
+               SET_FRAME_ICONIFIED (f, false);
++              if (FRAME_X_DOUBLE_BUFFERED_P (f))
++                font_drop_xrender_surfaces (f);
+               f->output_data.x->has_been_visible = true;
+               SET_FRAME_GARBAGED (f);
++              unblock_input ();
+             }
+-          else
+-	    {
++          else if (FRAME_GARBAGED_P (f))
++            {
+ #ifdef USE_GTK
+-	      /* This seems to be needed for GTK 2.6 and later, see
+-		 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
+-	      x_clear_area (f,
+-			    event->xexpose.x, event->xexpose.y,
+-			    event->xexpose.width, event->xexpose.height);
++              /* Go around the back buffer and manually clear the
++                 window the first time we show it.  This way, we avoid
++                 showing users the sanity-defying horror of whatever
++                 GtkWindow is rendering beneath us.  We've garbaged
++                 the frame, so we'll redraw the whole thing on next
++                 redisplay anyway.  Yuck.  */
++              x_clear_area1 (
++                FRAME_X_DISPLAY (f),
++                FRAME_X_WINDOW (f),
++                event->xexpose.x, event->xexpose.y,
++                event->xexpose.width, event->xexpose.height,
++                0);
+ #endif
+-	      expose_frame (f, event->xexpose.x, event->xexpose.y,
++            }
++
++
++          if (!FRAME_GARBAGED_P (f))
++            {
++#ifdef USE_GTK
++              /* This seems to be needed for GTK 2.6 and later, see
++                 http://debbugs.gnu.org/cgi/bugreport.cgi?bug=15398.  */
++              x_clear_area (f,
++                            event->xexpose.x, event->xexpose.y,
++                            event->xexpose.width, event->xexpose.height);
++#endif
++              expose_frame (f, event->xexpose.x, event->xexpose.y,
+ 			    event->xexpose.width, event->xexpose.height);
+-	    }
++            }
++
++          if (!FRAME_GARBAGED_P (f))
++            show_back_buffer (f);
+         }
+       else
+         {
+@@ -7822,10 +7921,13 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+                                    available.  */
+       f = x_window_to_frame (dpyinfo, event->xgraphicsexpose.drawable);
+       if (f)
+-	expose_frame (f, event->xgraphicsexpose.x,
+-		      event->xgraphicsexpose.y,
+-		      event->xgraphicsexpose.width,
+-		      event->xgraphicsexpose.height);
++        {
++          expose_frame (f, event->xgraphicsexpose.x,
++                        event->xgraphicsexpose.y,
++                        event->xgraphicsexpose.width,
++                        event->xgraphicsexpose.height);
++          show_back_buffer (f);
++        }
+ #ifdef USE_X_TOOLKIT
+       else
+         goto OTHER;
+@@ -8410,7 +8512,17 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+           else
+ 	    configureEvent = next_event;
+         }
++
+       f = x_top_window_to_frame (dpyinfo, configureEvent.xconfigure.window);
++      /* Unfortunately, we need to call font_drop_xrender_surfaces for
++         _all_ ConfigureNotify events, otherwise we miss some and
++         flicker.  Don't try to optimize these calls by looking only
++         for size changes: that's not sufficient.  We miss some
++         surface invalidations and flicker.  */
++      block_input ();
++      if (f && FRAME_X_DOUBLE_BUFFERED_P (f))
++        font_drop_xrender_surfaces (f);
++      unblock_input ();
+ #ifdef USE_CAIRO
+       if (f) x_cr_destroy_surface (f);
+ #endif
+@@ -8419,6 +8531,10 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+           && (f = any)
+           && configureEvent.xconfigure.window == FRAME_X_WINDOW (f))
+         {
++          block_input ();
++          if (FRAME_X_DOUBLE_BUFFERED_P (f))
++            font_drop_xrender_surfaces (f);
++          unblock_input ();
+           xg_frame_resized (f, configureEvent.xconfigure.width,
+                             configureEvent.xconfigure.height);
+ #ifdef USE_CAIRO
+@@ -8429,7 +8545,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ #endif
+       if (f)
+         {
+-	  x_net_wm_state (f, configureEvent.xconfigure.window);
++
++          x_net_wm_state (f, configureEvent.xconfigure.window);
+ 
+ #ifdef USE_X_TOOLKIT
+           /* Tip frames are pure X window, set size for them.  */
+@@ -8437,7 +8554,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+             {
+               if (FRAME_PIXEL_HEIGHT (f) != configureEvent.xconfigure.height
+                   || FRAME_PIXEL_WIDTH (f) != configureEvent.xconfigure.width)
+-                SET_FRAME_GARBAGED (f);
++                {
++                  SET_FRAME_GARBAGED (f);
++                }
+               FRAME_PIXEL_HEIGHT (f) = configureEvent.xconfigure.height;
+               FRAME_PIXEL_WIDTH (f) = configureEvent.xconfigure.width;
+             }
+@@ -8463,8 +8582,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+               || configureEvent.xconfigure.height != FRAME_PIXEL_HEIGHT (f))
+             {
+               change_frame_size (f, width, height, false, true, false, true);
+-	      x_clear_under_internal_border (f);
+-	      SET_FRAME_GARBAGED (f);
++              x_clear_under_internal_border (f);
++              SET_FRAME_GARBAGED (f);
+               cancel_mouse_face (f);
+             }
+ #endif /* not USE_GTK */
+@@ -8688,6 +8807,9 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+       count++;
+     }
+ 
++  /* Sometimes event processing draws to the frame outside redisplay.
++     To ensure that these changes become visible, draw them here.  */
++  flush_dirty_back_buffers ();
+   SAFE_FREE ();
+   return count;
+ }
+@@ -8880,7 +9002,7 @@ x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
+   if (dpyinfo->scratch_cursor_gc)
+     XChangeGC (dpy, dpyinfo->scratch_cursor_gc, GCForeground, &xgcv);
+   else
+-    dpyinfo->scratch_cursor_gc = XCreateGC (dpy, FRAME_X_WINDOW (f),
++    dpyinfo->scratch_cursor_gc = XCreateGC (dpy, FRAME_X_DRAWABLE (f),
+ 					    GCForeground, &xgcv);
+   gc = dpyinfo->scratch_cursor_gc;
+ 
+@@ -8937,7 +9059,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
+   else
+     {
+       Display *dpy = FRAME_X_DISPLAY (f);
+-      Window window = FRAME_X_WINDOW (f);
++      Drawable drawable = FRAME_X_DRAWABLE (f);
+       GC gc = FRAME_DISPLAY_INFO (f)->scratch_cursor_gc;
+       unsigned long mask = GCForeground | GCBackground | GCGraphicsExposures;
+       struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
+@@ -8958,7 +9080,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
+ 	XChangeGC (dpy, gc, mask, &xgcv);
+       else
+ 	{
+-	  gc = XCreateGC (dpy, window, mask, &xgcv);
++          gc = XCreateGC (dpy, drawable, mask, &xgcv);
+ 	  FRAME_DISPLAY_INFO (f)->scratch_cursor_gc = gc;
+ 	}
+ 
+@@ -9028,11 +9150,6 @@ static void
+ x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
+ {
+   x_clear_area (f, x, y, width, height);
+-#ifdef USE_GTK
+-  /* Must queue a redraw, because scroll bars might have been cleared.  */
+-  if (FRAME_GTK_WIDGET (f))
+-    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+-#endif
+ }
+ 
+ 
+@@ -10889,9 +11006,9 @@ x_make_frame_visible (struct frame *f)
+ 
+   if (! FRAME_VISIBLE_P (f))
+     {
+-      /* We test FRAME_GARBAGED_P here to make sure we don't
+-	 call x_set_offset a second time
+-	 if we get to x_make_frame_visible a second time
++      /* We test asked_for_visible here to make sure we don't
++         call x_set_offset a second time
++         if we get to x_make_frame_visible a second time
+ 	 before the window gets really visible.  */
+       if (! FRAME_ICONIFIED_P (f)
+ 	  && ! FRAME_X_EMBEDDED_P (f)
+@@ -10935,6 +11052,8 @@ x_make_frame_visible (struct frame *f)
+        will set it when they are handled.  */
+     bool previously_visible = f->output_data.x->has_been_visible;
+ 
++    XSETFRAME (frame, f);
++
+     original_left = f->left_pos;
+     original_top = f->top_pos;
+ 
+@@ -10981,8 +11100,6 @@ x_make_frame_visible (struct frame *f)
+ 	unblock_input ();
+       }
+ 
+-    XSETFRAME (frame, f);
+-
+     /* Process X events until a MapNotify event has been seen.  */
+     while (!FRAME_VISIBLE_P (f))
+       {
+@@ -11227,6 +11344,7 @@ x_free_frame_resources (struct frame *f)
+ 	 font-driver (e.g. xft) access a window while finishing a
+ 	 face.  */
+       free_frame_faces (f);
++      tear_down_x_back_buffer (f);
+ 
+       if (f->output_data.x->icon_desc)
+ 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
+@@ -11258,7 +11376,7 @@ x_free_frame_resources (struct frame *f)
+       /* Tooltips don't have widgets, only a simple X window, even if
+ 	 we are using a toolkit.  */
+       else if (FRAME_X_WINDOW (f))
+-	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
++        XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+ 
+       free_frame_menubar (f);
+ 
+@@ -11270,8 +11388,9 @@ x_free_frame_resources (struct frame *f)
+       xg_free_frame_widgets (f);
+ #endif /* USE_GTK */
+ 
++      tear_down_x_back_buffer (f);
+       if (FRAME_X_WINDOW (f))
+-	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
++          XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+ #endif /* !USE_X_TOOLKIT */
+ 
+       unload_color (f, FRAME_FOREGROUND_PIXEL (f));
+@@ -12111,7 +12230,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
+     }
+   else
+     dpyinfo->cmap = XCreateColormap (dpyinfo->display, dpyinfo->root_window,
+-				     dpyinfo->visual, AllocNone);
++                                     dpyinfo->visual, AllocNone);
++
++#ifdef HAVE_XDBE
++  dpyinfo->supports_xdbe = false;
++  int xdbe_major;
++  int xdbe_minor;
++  if (XdbeQueryExtension (dpyinfo->display, &xdbe_major, &xdbe_minor))
++    dpyinfo->supports_xdbe = true;
++#endif
+ 
+ #ifdef HAVE_XFT
+   {
+@@ -12462,7 +12589,7 @@ static struct redisplay_interface x_redisplay_interface =
+     x_after_update_window_line,
+     x_update_window_begin,
+     x_update_window_end,
+-    x_flush,
++    x_flip_and_flush,
+     x_clear_window_mouse_face,
+     x_get_glyph_overhangs,
+     x_fix_overlapping_area,
+@@ -12592,6 +12719,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
+   terminal->update_end_hook = x_update_end;
+   terminal->read_socket_hook = XTread_socket;
+   terminal->frame_up_to_date_hook = XTframe_up_to_date;
++  terminal->buffer_flipping_unblocked_hook = XTbuffer_flipping_unblocked_hook;
+   terminal->mouse_position_hook = XTmouse_position;
+   terminal->frame_rehighlight_hook = XTframe_rehighlight;
+   terminal->frame_raise_lower_hook = XTframe_raise_lower;
+diff --git a/src/xterm.h b/src/xterm.h
+index 675a484..01d7efc 100644
+--- a/src/xterm.h
++++ b/src/xterm.h
+@@ -475,6 +475,10 @@ struct x_display_info
+ #ifdef USE_XCB
+   xcb_connection_t *xcb_connection;
+ #endif
++
++#ifdef HAVE_XDBE
++  bool supports_xdbe;
++#endif
+ };
+ 
+ #ifdef HAVE_X_I18N
+@@ -527,6 +531,16 @@ struct x_output
+      and the X window has not yet been created.  */
+   Window window_desc;
+ 
++  /* The drawable to which we're rendering.  In the single-buffered
++     base, the window itself.  In the double-buffered case, the
++     window's back buffer.  */
++  Drawable draw_desc;
++
++  /* Flag that indicates whether we've modified the back buffer and
++     need to publish our modifications to the front buffer at a
++     convenient time.  */
++  bool need_buffer_flip;
++
+   /* The X window used for the bitmap icon;
+      or 0 if we don't have a bitmap icon.  */
+   Window icon_desc;
+@@ -737,6 +751,24 @@ enum
+ /* Return the X window used for displaying data in frame F.  */
+ #define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
+ 
++/* Return the drawable used for rendering to frame F.  */
++#define FRAME_X_RAW_DRAWABLE(f) ((f)->output_data.x->draw_desc)
++
++extern void x_mark_frame_dirty (struct frame *f);
++
++/* Return the drawable used for rendering to frame F and mark the
++   frame as needing a buffer flip later.  There's no easy way to run
++   code after any drawing command, but we can run code whenever
++   someone asks for the handle necessary to draw.  */
++#define FRAME_X_DRAWABLE(f)                             \
++  (x_mark_frame_dirty((f)), FRAME_X_RAW_DRAWABLE ((f)))
++
++#define FRAME_X_DOUBLE_BUFFERED_P(f)            \
++  (FRAME_X_WINDOW (f) != FRAME_X_RAW_DRAWABLE (f))
++
++/* Return the need-buffer-flip flag for frame F.  */
++#define FRAME_X_NEED_BUFFER_FLIP(f) ((f)->output_data.x->need_buffer_flip)
++
+ /* Return the outermost X window associated with the frame F.  */
+ #ifdef USE_X_TOOLKIT
+ #define FRAME_OUTER_WINDOW(f) ((f)->output_data.x->widget ?             \
+@@ -1140,6 +1172,9 @@ extern bool x_wm_supports (struct frame *, Atom);
+ extern void x_wait_for_event (struct frame *, int);
+ extern void x_clear_under_internal_border (struct frame *f);
+ 
++extern void tear_down_x_back_buffer (struct frame *f);
++extern void initial_set_up_x_back_buffer (struct frame *f);
++
+ /* Defined in xselect.c.  */
+ 
+ extern void x_handle_property_notify (const XPropertyEvent *);
+-- 
+cgit v1.0
+
