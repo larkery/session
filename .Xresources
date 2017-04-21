@@ -2,7 +2,7 @@
 
 URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
-Xcursor.theme: Vanilla-DMZ-AA
+Xcursor.theme: whiteglass
 Xcursor.size: 16
 
 URxvt*urgentOnBell: true

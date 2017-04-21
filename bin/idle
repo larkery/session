@@ -42,61 +42,66 @@ sub lock_system {
 
 system "notmuch new";
 system "stty -tostop";
+
 my @children;
 for my $server ( keys %accts ) {
     my $proc = fork;
     if ($proc) {
         push @children, $proc;
     } elsif ($proc == 0) {
-        my $host = $accts{$server}{Host};
-        my $user = $accts{$server}{User};
-        my $pass = $accts{$server}{PassCmd};
-        my $ssltype = $accts{$server}{SSLType};
-
-        my $mailbox = 'INBOX';
-        my $update_cmd = "mbsync $server:INBOX; NO_SYNC=1 notmuch new";
-
-        $pass =~ s/^"//;
-        $pass =~ s/"$//;
-        $pass = `$pass`;
-
-        print "connecting to $host:$ssltype...\n";
-        my $client;
-        if ($ssltype eq 'IMAPS') {
-            my $socket = IO::Socket::SSL->new (PeerAddr => $host, PeerPort => 993)
-                or die "cannot connect SSL $host: $!\n";
-            $client = Mail::IMAPClient->new(
-                Socket => $socket,
-                KeepAlive => 'true',
-                User => $user,
-                Password => $pass);
-        } else {
-            $client = Mail::IMAPClient->new(
-                Server => $host,
-                Port => 143,
-                KeepAlive => 'true',
-                Starttls => 'true',
-                User => $user,
-                Password => $pass
-                );
-        }
-        die "cannot connect to $host: $!\n" unless $client;
-        print "connected to $host\n";
-        $client->select($mailbox) or die("cannot select\n");
+      reconnect:
         until (0) {
-            die "$host disconnected\n"
-                unless $client->IsConnected;
-            my $unseen = $client->unseen_count;
-            print "$server: $unseen\n";
-            my $tag = $client->idle()
-                or die "could not idle\n";
-            my $msgs = $client->idle_data(300);
-            if (scalar(@$msgs)) {
-                print "$server scan\n";
-                lock_system($update_cmd);
-                print "$server done\n";
+            my $update_cmd = "mbsync $server:INBOX; NO_SYNC=1 notmuch new";
+
+            lock_system($update_cmd);
+            my $host = $accts{$server}{Host};
+            my $user = $accts{$server}{User};
+            my $pass = $accts{$server}{PassCmd};
+            my $ssltype = $accts{$server}{SSLType};
+
+            my $mailbox = 'INBOX';
+
+            $pass =~ s/^"//;
+            $pass =~ s/"$//;
+            $pass = `$pass`;
+
+            print "connecting to $host:$ssltype...\n";
+            my $client;
+            if ($ssltype eq 'IMAPS') {
+                my $socket = IO::Socket::SSL->new (PeerAddr => $host, PeerPort => 993)
+                    or next reconnect;
+                $client = Mail::IMAPClient->new(
+                    Socket => $socket,
+                    KeepAlive => 'true',
+                    User => $user,
+                    Password => $pass);
+            } else {
+                $client = Mail::IMAPClient->new(
+                    Server => $host,
+                    Port => 143,
+                    KeepAlive => 'true',
+                    Starttls => 'true',
+                    User => $user,
+                    Password => $pass
+                    );
             }
-            $client->done($tag);
+            next reconnect unless $client;
+            # die "cannot connect to $host: $!\n"
+            $client->select($mailbox) or next reconnect;#;;die("cannot select $mailbox in $host\n");
+            until (0) {
+                ## die "$host disconnected\n"
+                next reconnect unless $client->IsConnected;
+                my $unseen = $client->unseen_count;
+                print "$server: $unseen\n";
+                my $tag = $client->idle() or next reconnect;
+#                    or die "could not idle\n";
+                my $msgs = $client->idle_data(300);
+                if (scalar(@$msgs)) {
+                    print "sync $server\n";
+                    lock_system($update_cmd);
+                }
+                $client->done($tag);
+            }
         }
         exit 0;
     }
