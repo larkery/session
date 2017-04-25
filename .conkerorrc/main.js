@@ -1,4 +1,4 @@
-var title_formatter = function(window) {return "";};
+var title_formatter = function(window) {return window.buffers.current.title.substring(0, 75);};
 title_format_fn = title_formatter;
 
 hint_digits="qwerasdfzxcv";
