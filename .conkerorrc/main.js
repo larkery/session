@@ -1,3 +1,6 @@
+var title_formatter = function(window) {return "";};
+title_format_fn = title_formatter;
+
 hint_digits="qwerasdfzxcv";
 
 let home = get_home_directory();

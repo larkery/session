@@ -4,10 +4,6 @@
 # email tidying up process for render in emacs.
 # continuing the endless struggle against outlook, the worst email program
 tidy -q -config ~/.config/html-tidy/tidy.conf |
-    # xmlstarlet --no-doc-namespace ed \
-    #            -N o="urn:schemas-microsoft-com:office:office" \
-    #            -d '//table[@id="main-content-table"]' \
-    #            -d '//table[@id="container-table"]' \
-    #            -d '//a[starts-with(@href, "mailto:")]/@href' |
+    # could use mojolicious to remove garbage and add > for divs with left line
     w3m -cols "$1" -o display_link_number=1 -o display_charset=UTF-8 -dump -T text/html |
     perl -pe '$/=""; s/\n+/\n/;'
