@@ -1,7 +1,7 @@
 var title_formatter = function(window) {return window.buffers.current.title.substring(0, 75);};
 title_format_fn = title_formatter;
 
-hint_digits="qwerasdfzxcv";
+hint_digits="QWERASDFZXCV";
 
 let home = get_home_directory();
 home.append(".conkerorrc");

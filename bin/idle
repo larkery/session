@@ -96,6 +96,7 @@ for my $server ( keys %accts ) {
                 my $tag = $client->idle() or next reconnect;
 #                    or die "could not idle\n";
                 my $msgs = $client->idle_data(300);
+                next reconnect unless defined $msgs;
                 if (scalar(@$msgs)) {
                     print "sync $server\n";
                     lock_system($update_cmd);
