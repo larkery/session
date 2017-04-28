@@ -2,9 +2,8 @@
 
 NEW=$(notmuch count -- tag:new and not from:tom.hinton@cse.org.uk and not from:larkery.com)
 SUB=$(notmuch search --format=json -- tag:new and not from:me | jq -j '.[0:5]|.[]|.subject+"\n"')
-notmuch tag -new -- tag:new
-
 CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
+notmuch tag -new -- tag:new
 
 if [ ! "$?" -eq 0 ]
 then

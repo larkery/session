@@ -9,11 +9,11 @@ shares[cse-bs3-file]=webmail.cse.org.uk
 shares[cse-bs3-file.cse.org.uk]=webmail.cse.org.uk
 
 getf () {
-    echo -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
+    echo -E -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
 }
 
 getp () {
-    echo -n "$1" | head -n 1
+    echo -E -n "$1" | head -n 1
 }
 
 if [[ ! -z $help ]]; then
@@ -67,12 +67,12 @@ out=""
 proc() {
     if [[ ! -z $clip ]]; then
         notify-send "copied $2"
-        echo -n "$1" | xclip -quiet -l 1 -selection primary
+        echo -E -n "$1" | xclip -quiet -l 1 -selection primary
     elif [[ ! -z $type ]]; then
         # TODO: password revealed in args
         xdotool type "$1"
     else
-        echo -n "$1"
+        echo -E -n "$1"
     fi
 }
 

@@ -5,6 +5,9 @@ from __future__ import print_function
 import notmuch, os, shutil, sys
 import uuid
 import re
+from email.parser import Parser
+from email.utils import parsedate
+import time
 
 base_maildir = os.environ['MAIL_DIR']
 
@@ -16,37 +19,14 @@ def mbsync_uid(fn):
     [nam, flags] = fn.split(':')
     return int((nam.split(',')[1])[2:])
 
-# def change_uid(fn, uid):
-#     fn = os.path.basename(fn)
-#     [nam, flags] = fn.split(':')
-#     nam = nam.split(',')
-#     nam[1] = 'U=' + str(uid)
-#     return ':'.join([','.join(nam), flags])
-
 def generate_name(fn):
     fn = os.path.basename(fn)
     flags = fn.split(':')[-1]
     return 'refile-' + str(uuid.uuid1()) + ':' + flags
 
 def refile(mail, dest):
-    # also need to update the uidvalidity in the maildir or
-    # mbsync will reuse the uid and we will all be in a bad place.
-    # the first lin in uidvalidity looks like a unix timestamp
-    # but what is it for?
-    #uvfile = os.path.join(os.path.join(base_maildir, dest), '.uidvalidity')
     dest = os.path.join(os.path.join(base_maildir, dest), 'cur')
     mailname = os.path.basename(dest)
-    #maybe I should not be touching the uid validity thing at all?
-    # try:
-    #     with open(uvfile) as uiv:
-    #         lines = uiv.readlines()
-    #     new_uid = int(lines[1]) + 1
-    #     lines[1] = str(new_uid)
-    #     with open(uvfile, 'w') as uiv:
-    #         uiv.writelines(lines)
-    # except:
-    #     new_uid = max([mbsync_uid(fn) for fn in os.listdir(dest)]) + 2
-    #     print('could not read uidvalidity, might wreck stuff', uvfile, file=sys.stderr)
     new_name = generate_name(mail)
     new_name = os.path.join(dest, new_name)
     try:
@@ -90,15 +70,40 @@ def refile_to(path):
     refiler.__name__='refile_to(' + path + ')'
     return refiler
 
+def tag_headers(hmap):
+    def htagger(m, db):
+        result = []
+
+        for fn in m.get_filenames():
+            headers = Parser().parse(open(fn, 'r'))
+            for header in hmap:
+                if header in headers:
+                    tag = hmap[header](headers[header])
+                    if tag:
+                        m.add_tag(tag)
+                        result.append(md(fn))
+
+        return result
+
+    return htagger
+
+def expire(m, db):
+    result = []
+    for fn in m.get_filenames():
+        headers = Parser().parse(open(fn, 'r'))
+        d = time.mktime(parsedate(headers['Expires']))
+        if d < time.time():
+            m.remove_tag(expires)
+            m.add_tag("expired")
+
+    return result
+
 def delete(msg, db):
     result = []
     for fn in msg.get_filenames():
         db.remove_message(fn)
         result.append(md(fn))
-#        try:
         os.remove(fn)
-#        except e:
-#            pass
     return result
 
 def remove_tag(tag):
@@ -183,6 +188,10 @@ def manage_inbox(me, folders):
 
 delete_deleted = [ ('tag:deleted', delete) ]
 tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
+propagate_headers = [ ('tag:new', tag_headers({
+    'Importance': lambda i : i.lower() + "-importance",
+    'Expires':lambda e : "expires"
+})), ('tag:expires', expire) ]
 
 def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
     return {
@@ -194,6 +203,7 @@ def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
 
 actions = [item for l in
            [delete_deleted,
+            propagate_headers,
             manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
             manage_inbox('larkery.com', folders('fastmail')),
             tag_calendar] for item in l]
