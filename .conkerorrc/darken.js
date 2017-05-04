@@ -1,9 +1,3 @@
-var dark_stylesheet = make_css_data_uri(
-    ['* { background: #3f3f3f !important; color: #e5e2ce !important; }'
-     , ':link, :link * { color: #eee !important;; }'
-     , ':visited, :visited * { color: #aaa !important; }'] );
-
-
 var theme_fix_stylesheet = make_css_data_uri(
     [
         "@-moz-document url-prefix(about:blank) {*{background-color:#202020;}}",
@@ -66,6 +60,11 @@ var theme_fix_stylesheet = make_css_data_uri(
 
 register_user_stylesheet(theme_fix_stylesheet);
 
+var dark_stylesheet = get_home_directory();
+dark_stylesheet.append(".conkerorrc");
+dark_stylesheet.append("zenburn.css");
+dark_stylesheet = make_uri(dark_stylesheet);
+
 var dark_enabled = false;
 
 function toggle_dark_mode (I) {
@@ -80,3 +79,4 @@ function toggle_dark_mode (I) {
 
 interactive("toggle-dark-mode", "Darken the page, or undarken it", toggle_dark_mode);
 define_key(content_buffer_normal_keymap, "C-d", "toggle-dark-mode");
+toggle_dark_mode();

@@ -84,3 +84,17 @@ done
 if [[ ! -z $pass ]]; then
     proc "$(getp $data)" "password"
 fi
+
+if [[ ! -z $login ]]; then
+    browser="$(getf $data browser)"
+    browser=${browser:-xdg-open}
+    url="$(getf $data url)"
+    user="$(getf $data user)"
+    pass="$(getp $data)"
+    $browser "$url" &
+    export user
+    export pass
+    yad --text "$1" '--button=User:sh -c "xdotool type \"$user\""' \
+        '--button=Password:sh -c "xdotool type \"$pass\""' \
+        '--button=Close:0' --mouse --no-focus
+fi

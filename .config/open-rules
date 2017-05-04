@@ -8,7 +8,7 @@ scheme mailto
 exec emacsclient -c -e "(browse-url-mail \"$1\")"
 scheme http
 scheme https
-exec conkeror "$1"
+exec qutebrowser "$1"
 mime text/html
 name htm$
 name html$

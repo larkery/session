@@ -47,6 +47,9 @@ interactive("open-selection",
             });
 
 define_key(content_buffer_normal_keymap, "w", "open-selection");
+define_key(content_buffer_normal_keymap, "o", "find-url");
+define_key(content_buffer_normal_keymap, "O", "find-alternate-url");
+define_key(content_buffer_normal_keymap, "g", "reload");
 
 var minibuffer_autohide_message_timeout = 3000;
 var minibuffer_autohide_timer = null;
