@@ -1,0 +1,7 @@
+mime inode/directory
+exec ls -lh --color "$1"
+mime text/.*
+run {file "$1"; printf '-%.0s' {1..10}; echo; head "$1"}
+name .*
+exec file "$1"
+EOF
