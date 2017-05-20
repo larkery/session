@@ -19,7 +19,8 @@ fi
 if [ $NEW -ne 0 ]
 then
     notify "$NEW new mails" "$SUB"
-#    if [ -S /tmp/emacs${UID}/server ]; then
-#        emacsclient -n -e '(notmuch-refresh-all-buffers)'
-#    fi
+fi
+
+if [ x$DISPLAY != x ]; then
+    xprop -f UNREAD_EMAILS 8s -set UNREAD_EMAILS $(notmuch count tag:unread) -root
 fi

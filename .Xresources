@@ -42,7 +42,6 @@ Emacs*toolBar:0
 
 Emacs*FontBackend: xft
 Emacs*font: FONT
-Emacs*pointerColor: #ffffff
 
 xclock*chime: true
 xclock*geometry: 80x80-5-40

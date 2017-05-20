@@ -6,11 +6,19 @@ if [ "$1" = "-bg" ]; then
     exit
 fi
 
-echo "opening $@"
+RULES_FILE="$HOME/.config/open-rules"
+
+if [ "$1" = "-rules" ]; then
+    shift
+    RULES_FILE="$1"
+    shift
+fi
 
 err () {
     echo "error: $@" 1>&2
 }
+
+[[ "$#" -gt 0 ]] || {err "$0: requires an argument" && exit 1}
 
 export XDG_OPEN_DEPTH=$(( ${XDG_OPEN_DEPTH:-0} + 1 ))
 
@@ -56,13 +64,13 @@ while read -r mode match; do
                 found=$?
             ;;
         esac
+    elif [ $mode = run ]; then
+        eval $match
+        exit 0
     elif [ $mode = exec ]; then
-        #echo "$1"
-        #echo $match
-        #eval echo $match
         eval exec $match
     fi
-done < $HOME/.config/open-rules
+done < "$RULES_FILE"
 
 
 CMD=$(yad --center --entry --on-top --completion --entry-label "Open $1 with:" ${(ko)commands})
