@@ -1,0 +1,2 @@
+#!/bin/sh
+sleep $(( ( $(printf "$1\nnow\n" | date -f - +%s-)0 )%86400 ))

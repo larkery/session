@@ -1,6 +1,6 @@
-#define FONT Monospace-11
+#define FONT Monospace-13
 
-URxvt.font: xft:Monospace:size=11, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
+URxvt.font: xft:Monospace:size=13, xft:Symbola:size=11, -*-unifont-*-*-*-*-*-*-*-*-*-*-*-*
 
 Xcursor.theme: whiteglass
 Xcursor.size: 16
