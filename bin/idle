@@ -91,10 +91,14 @@ for my $server ( keys %accts ) {
             until (0) {
                 ## die "$host disconnected\n"
                 next reconnect unless $client->IsConnected;
-                my $unseen = $client->unseen_count;
-                print "$server: $unseen\n";
+                my $unseen = 0 + $client->unseen_count;
+                my $lunseen = 0 + `notmuch count 'tag:unread and tag:inbox and path:$server/**'`;
+                if ($lunseen != $unseen) {
+                    print "counts not matched $server\n";
+                    lock_system($update_cmd);
+                }
+                print "$server: $unseen $lunseen\n";
                 my $tag = $client->idle() or next reconnect;
-#                    or die "could not idle\n";
                 my $msgs = $client->idle_data(300);
                 next reconnect unless defined $msgs;
                 if (scalar(@$msgs)) {
