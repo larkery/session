@@ -9,10 +9,9 @@ function toggle_dark_mode (I) {
     if (dark_enabled = !dark_enabled) {
         register_user_stylesheet(dark_stylesheet);
     } else {
-        register_user_stylesheet(theme_fix_stylesheet);
+        unregister_user_stylesheet(dark_stylesheet);
     }
 }
 
 interactive("toggle-dark-mode", "Darken the page, or undarken it", toggle_dark_mode);
 define_key(content_buffer_normal_keymap, "C-d", "toggle-dark-mode");
-//toggle_dark_mode();
