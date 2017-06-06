@@ -60,7 +60,7 @@ self: super:
 
    clojurePackages = self.buildEnv {
       name = "clojure-packages";
-      paths = with self; [clojure leiningen];
+      paths = with self; [clojure leiningen boot];
    };
 
    javaPackages = self.buildEnv {
