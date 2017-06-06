@@ -22,6 +22,8 @@ self: super:
         packages = with self.rPackages; [
            ggplot2 dplyr tidyr purrr openxlsx fuzzyjoin assertthat microbenchmark
            memoise testthat
+           XLConnect data_table downloader
+           validate
         ];
      })];
    };
