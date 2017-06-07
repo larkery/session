@@ -8,7 +8,7 @@
 /* Universal - sets color of text, border */
 
 * {
-color: #dcc !important;
+color: #DCDCCC !important;
 border-color: #444 !important;
 outline-color: #444 !important;
 text-shadow: none !important;}
