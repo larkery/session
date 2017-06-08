@@ -23,7 +23,9 @@ self: super:
            ggplot2 dplyr tidyr purrr openxlsx fuzzyjoin assertthat microbenchmark
            memoise testthat
            XLConnect data_table downloader
+           RSQLite
            validate
+           optparse
         ];
      })];
    };
