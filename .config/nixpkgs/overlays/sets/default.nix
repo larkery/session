@@ -26,6 +26,7 @@ self: super:
            RSQLite
            validate
            optparse
+           Hmisc
         ];
      })];
    };
