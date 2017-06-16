@@ -1,0 +1,340 @@
+#!/usr/bin/env nix-shell
+#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch python35Packages.html2text python35Packages.chardet
+
+from   __future__ import print_function
+import os
+import re
+import notmuch
+import sqlite3
+from collections import Counter, defaultdict
+import email
+from math import log
+import html2text
+import chardet
+
+## https://github.com/codebox/bayesian-classifier
+
+MIN_COUNT      = 5
+MIN_COUNT_PROB = 0.5
+EXCLUSIVE      = 0.99
+
+nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+all_tags = list(nm.get_all_tags())
+del nm
+
+boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
+               "flagged", "signed", "encrypted", "new",
+               "meeting", "accepted", "rejected", "tentative",
+               "low-importance", "normal-importance", "high-importance"]
+
+def not_boring(tag):
+    return not(tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS'))
+
+
+html_parser = html2text.HTML2Text()
+html_parser.ignore_links = True
+html_parser.decode_errors = 'replace'
+html_parser.ignore_anchors = True
+html_parser.ignore_tables = True
+
+classes = set(filter(not_boring, all_tags))
+
+db_file = os.path.expanduser('~/.mail/classifier.db')
+mt_file = os.path.expanduser('~/.mail/classifier.updated')
+db = None
+dbc = None
+total_words = None
+db_last_modified = None
+
+def tag_threshold(c):
+    return 0.93
+
+def connect_db():
+    global db
+    global dbc
+    global db_last_modified
+    global total_words
+
+    if os.path.exists(mt_file) and os.path.exists(db_file):
+        db_last_modified = os.path.getmtime(mt_file)
+    else:
+        db_last_modified = None
+
+    db = sqlite3.connect(db_file)
+    db.row_factory = sqlite3.Row
+    dbc = db.cursor()
+
+
+    try:
+        dbc.execute("create table v (word text, n int default 0, unique(word) on conflict ignore)")
+        dbc.execute("create table d (class text, n int default 0, unique(class) on conflict ignore)")
+        dbc.execute("create index w on v (word)")
+    except:
+        pass
+
+    for c in classes:
+        try:
+            dbc.execute("alter table v add column `%s` int default 0" % (c, ))
+        except:
+            pass
+    total_words = dbc.execute("select count(*) from v").fetchone()[0]
+
+common_words = set(['the','be','to','of','and','a','in','that','have','it',
+                    'is','im','are','was','for','on','with','he','as','you',
+                    'do','at','this','but','his','by','from','they','we','say',
+                    'her','she','or','an','will','my','one','all','would',
+                    'there','their','what','so','up','out','if','about','who',
+                    'get','which','go','me','when','make','can','like','time',
+                    'just','him','know','take','person','into','year','your',
+                    'some','could','them','see','other','than','then','now',
+                    'look','only','come','its','over','think','also','back',
+                    'after','use','two','how','our','way','even','because',
+                    'any','these','us', 'http', 'com', 'not', 'has', 'www',
+                    'org', 'uk', 'ac', 'co', 'larkery', 'no', 'hi', 'am', 'cs', 'bris',
+                    'x[0-9a-f]{2}', '[a-f0-9]+', 'gt', 'hr', 'lt', 'gt'])
+
+bad_regex = re.compile("^"+"|".join(common_words)+"$")
+
+def good_words(txt):
+    if txt == None: return []
+    words = re.split('\W+', txt)
+    words = map(lambda x : x.lower(), words)
+    words = filter(lambda x : not(len(x) < 2 or len(x) > 30 or x.isdigit() or bad_regex.match(x)), words)
+    return words
+
+def try_decode(payload):
+    try:
+        return payload.decode('utf-8')
+    except:
+        try:
+            return payload.decode('ISO-8859-2')
+        except:
+            enc = chardet.detect(payload)['encoding']
+            return payload.decode(enc, errors = 'replace')
+
+def count_words(fn):
+    result = Counter()
+
+    with open(fn, errors='replace') as fin:
+        msg = email.message_from_string(fin.read())
+        result.update(good_words(msg['subject']))
+        result.update(good_words(msg['from']))
+        html_parts = []
+
+        for part in msg.walk():
+            cd = part.get("Content-Disposition", "")
+            if cd.startswith("attachment"): continue
+            if cd.startswith("inline") and part.get_filename(): continue
+            try:
+                if part.get_content_type() == 'text/plain':
+                    text = try_decode(part.get_payload(decode = True))
+                    result.update(good_words(text))
+                elif part.get_content_type() == 'text/html':
+                    html_parts.append(part)
+            except:
+                print('payload error in', fn)
+
+        if sum(result.values()) < 30:
+            for part in html_parts:
+                html = try_decode(part.get_payload(decode = True))
+                md = html_parser.handle(html)
+                result.update(good_words(md))
+
+    return result.items()
+
+def tag_part(tag):
+    if tag[0] == '+' or tag[0] == '-':
+        return tag[1:]
+    else:
+        return tag
+
+def tag_sign(tag):
+    if tag[0] == '+' or tag[0] == '-':
+        return tag[:1]
+    else:
+        return "+"
+
+def db_add_document(cs, freq, new_doc=True):
+    if new_doc:
+        dbc.execute("insert into d (class) values ('*')")
+        dbc.execute("update d set n = n + 1 where class = '*'")
+
+    for c in cs:
+        tag = tag_part(c)
+        sgn = tag_sign(c)
+        dbc.execute("insert into d (class) values (?)", (tag,))
+        dbc.execute("update d set n = n %s 1 where class = ?" % (sgn, ), (tag,))
+
+    def set_tag(t):
+        tag = tag_part(t)
+        sgn = tag_sign(t)
+        return "`%s` = `%s` %s ?" % (tag, tag, sgn)
+
+    for (w, count) in freq:
+        dbc.execute("insert into v (word) values (?);", (w, ))
+        fields = list(cs)
+        params = [count] * len(fields)
+        if new_doc:
+            fields.append("n")
+            params.append(count)
+        params.append(w)
+        fields = ", ".join(map(set_tag, fields))
+        dbc.execute("update v set %s where word = ?" %(fields,), params)
+
+def db_class_word_counts(c, word):
+    ## find the number of times word is in and out of class
+    r = dbc.execute("select `%s`, n-`%s` from v where word=?" % (c,c), (word, )).fetchone()
+    if r == None: return (0, 0)
+    return r
+
+p_doc_memo = {}
+
+def db_class_p_doc(c):
+    if c not in p_doc_memo:
+        doccount = dbc.execute("select n from d where class = '*'").fetchone()[0]
+        doccount_c = dbc.execute("select n from d where class=?", (c, )).fetchone()[0]
+        p_in = doccount_c / float(doccount)
+        p_doc_memo[c] = (p_in, 1-p_in)
+    return p_doc_memo[c]
+
+total_memo = {}
+
+
+def db_class_total_counts(c):
+    ## find total number of words seen in and out of c
+    if c in total_memo:
+        return total_memo[c]
+    r = dbc.execute("select sum(`%s`), sum(n - `%s`) from v" %(c, c)).fetchone()
+    if r == None: r = (0,0)
+    total_memo[c] = r
+    return r
+
+def pw_estimate(count, total):
+    ## laplacian smoothed estimate
+    result = (max(count, 0)+1) / float(max(total, 0) + total_words)
+    return result
+
+
+def classify_word(c, word):
+    (count_in, count_out) = db_class_word_counts(c, word)
+    (total_in, total_out) = db_class_total_counts(c)
+
+    return (pw_estimate(count_in, total_in),
+            pw_estimate(count_out, total_out))
+
+def classify_words(c, words):
+    try:
+       prod, prodcomp = db_class_p_doc(c)
+       prod = log(prod)
+       prodcomp = log(prodcomp)
+       for (word, count) in words:
+           (p_in, p_out) = classify_word(c, word)
+           if p_in == 0 or p_out == 0:
+               print ("bad word probability", p_in, p_out)
+           prod = prod + count*log(p_in)
+           prodcomp = prodcomp + count*log(p_out)
+
+       return (prod, prodcomp)
+    except:
+        print("error in", c, words)
+
+def train(classes = classes):
+    qry = '(tag:spam or not tag:spam)'
+    if db_last_modified:
+        import datetime
+        d = datetime.datetime.fromtimestamp(db_last_modified)
+        qry = qry + ' and date:%d..' %(d.strftime("%Y-%m-%d %H:%M"), )
+    print(qry)
+    nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+    query = nm.create_query(qry)
+    count = query.count_messages()
+    counter = 0
+    content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
+    del nm
+    for fi, ts in content:
+        words = count_words(fi)
+        db_add_document(set.intersection(classes, set(ts)), words)
+        counter = counter + 1
+        print(str(counter), '/', str(count))
+        if counter % 1000 == 0: db.commit()
+    db.commit()
+    del query
+    with open(mt_file, 'w') as mt:
+        mt.write('ok')
+
+def retrain(query, changed_classes):
+    changed_classes = list(filter(lambda x : tag_part(x) in classes, changed_classes))
+
+    if len(changed_classes) > 0:
+        nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+        query = nm.create_query(query)
+        content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
+
+        for fi, ts in content:
+            words = count_words(fi)
+            db_add_document(changed_classes, words, new_doc = False)
+        db.commit()
+
+        del query
+
+def classify(classes = classes, query="tag:new"):
+    nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
+    new = nm.create_query(query)
+    def fmt(a):
+        (x, (i, o)) = a
+        return "    %s%s: %.2f v %.2f" % ("+" if i > o else "-", x, i, o)
+    for msg in new.search_messages():
+
+        words = count_words(msg.get_filename())
+        res = {c : classify_words(c, words) for c in classes}
+        p = False
+        exist = set(msg.get_tags())
+        for (x, (i, o)) in res.items():
+            r = o/i
+            if r > tag_threshold(x):
+                if not(p): print(msg, msg.get_header("subject"))
+                if x not in exist:
+                    print("+", x, r)
+                    msg.add_tag(x)
+                else:
+                    print("=", x, r)
+                p = True
+            elif x in exist:
+                if not(p): print(msg, msg.get_header("subject"))
+                print("X", x, r)
+                p = True
+
+    del new
+
+try:
+    if __name__=="__main__":
+        connect_db()
+        import sys
+        if sys.argv[1] == '--train':
+            train()
+        elif sys.argv[1] == "--train-full":
+            try:
+                os.remove(db_file)
+            except:
+                pass
+            connect_db()
+            train()
+        elif sys.argv[1] == '--tag':
+            query = ' '.join(sys.argv[2:])
+            classify(query=query)
+        elif sys.argv[1] == "--retrain":
+            query = sys.argv[2]
+            tags = sys.argv[3:]
+            retrain(query, tags)
+        elif sys.argv[1] == "--stats":
+            c = sys.argv[2]
+            res = dbc.execute("select word, n, `%s` from v where `%s` > 0 order by `%s` " % (c, c, c))
+            for row in res:
+                print (row[0], row[1], row[2])
+            pass
+        elif sys.argv[1] == "--clean":
+            for word in common_words:
+                dbc.execute("delete from v where word = ?", (word, ))
+            db.commit()
+finally:
+    db.close()

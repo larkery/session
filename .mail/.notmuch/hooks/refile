@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell --show-trace -i python -p python python27Packages.notmuch python27Packages.spambayes
+#! nix-shell --show-trace -i python -p python python27Packages.notmuch
 
 from   __future__ import print_function
 import notmuch, os, shutil, sys
@@ -8,69 +8,11 @@ import re
 from   email.parser import Parser
 from   email.utils import parsedate
 import time
+import datetime as dt
 
 base_maildir = os.environ['MAIL_DIR']
-
-from spambayes import hammie, Options, mboxutils, storage
-
-def msg_text(msg):
-    with open(msg.get_filename()) as h:
-        return h.read()
-
-class SpamFilter(object):
-    def __init__(self):
-        options = Options.options
-        if options["Storage", "persistent_storage_file"] == \
-           options.default("Storage", "persistent_storage_file"):
-            options["Storage", "persistent_storage_file"] = \
-                                    "~/.hammiedb"
-        options.merge_files(['/etc/hammierc',
-                            os.path.expanduser('~/.hammierc')])
-        self.dbname, self.usedb = storage.database_type([])
-        self.mode = self.h = None
-        if not os.path.exists(self.dbname):
-            self.open('n')
-
-    def open(self, mode):
-        if self.h is None or self.mode != mode:
-            if self.h is not None:
-                if self.mode != 'r':
-                    self.h.store()
-                self.h.close()
-            self.mode = mode
-            self.h = hammie.open(self.dbname, self.usedb, self.mode)
-
-    def close(self):
-        if self.h is not None:
-            if self.mode != 'r':
-                self.h.store()
-            self.h.close()
-        self.h = None
-
-    __del__ = close
-
-    def classify_and_train(self, msg):
-        self.open('c')
-        con = msg_text(msg)
-        result = self.h.filter(con, train=True)
-        self.h.store()
-        return result
-
-    def change_to_spam(self, msg):
-        self.open('c')
-        con = msg_text(msg)
-        self.h.untrain_ham(con)
-        self.h.train_spam(con)
-        self.h.store()
-
-    def change_to_ham(self, msg):
-        self.open('c')
-        con = msg_text(msg)
-        self.h.untrain_spam(con)
-        self.h.train_ham(con)
-        self.h.store()
-
-spams = SpamFilter()
+db = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
+today = dt.datetime.today()
 
 def md(p):
     return os.path.relpath(os.path.dirname(os.path.dirname(p)), base_maildir)
@@ -207,20 +149,6 @@ def awaken(tags, path):
     awakener.__name__ = 'awaken('+path+')'
     return awakener
 
-def classify_spam(m, db):
-    if spams.classify_and_train(m):
-        m.add_tag("spam")
-    return []
-
-def train_spam(m, db):
-    ts = list(m.get_tags())
-    if 'spam' in ts:
-        spams.change_to_spam(m)
-    elif 'ham' in ts:
-        spams.change_to_ham(m)
-        m.remove_tag('ham')
-    return []
-
 def S(things):
     def fn(m, db):
         result = []
@@ -233,11 +161,6 @@ def S(things):
 def restrict(query, actions):
     return map(lambda (Q, A): ( '%s AND (%s)' % (query, Q) , A ),  actions)
 
-db = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
-
-import datetime as dt
-
-today = dt.datetime.today()
 
 def sleepy_tag(t):
     if t.startswith('asleep-until'):
@@ -261,8 +184,7 @@ def manage_inbox(me, folders):
 
     return restrict('path:%(root)s/**' % folders, actions)
 
-manage_spam = [ ('(tag:spam or tag:ham) and not tag:new', train_spam)
-                , ('tag:new', classify_spam)]
+manage_spam = []
 
 delete_deleted = [ ('tag:deleted', delete) ]
 tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
