@@ -46,8 +46,11 @@ dbc = None
 total_words = None
 db_last_modified = None
 
-def tag_threshold(c):
-    return 0.93
+tag_threshold = defaultdict(lambda:float(0.93))
+tag_strength = defaultdict(lambda:float(1))
+
+# spam is twice as bad as normal
+tag_strength['spam'] = 2
 
 def connect_db():
     global db
@@ -171,9 +174,10 @@ def db_add_document(cs, freq, new_doc=True):
         return "`%s` = `%s` %s ?" % (tag, tag, sgn)
 
     for (w, count) in freq:
+        count
         dbc.execute("insert into v (word) values (?);", (w, ))
         fields = list(cs)
-        params = [count] * len(fields)
+        params = [int(count * tag_strength[c]) for c in fields]
         if new_doc:
             fields.append("n")
             params.append(count)
@@ -291,7 +295,7 @@ def classify(classes = classes, query="tag:new"):
         exist = set(msg.get_tags())
         for (x, (i, o)) in res.items():
             r = o/i
-            if r > tag_threshold(x):
+            if r > tag_threshold[x]:
                 if not(p): print(msg, msg.get_header("subject"))
                 if x not in exist:
                     print("+", x, r)
