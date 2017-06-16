@@ -281,7 +281,7 @@ def retrain(query, changed_classes):
 
         del query
 
-def classify(classes = classes, query="tag:new"):
+def classify(classes = classes, query="tag:new", dry_run = False):
     nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
     new = nm.create_query(query)
     def fmt(a):
@@ -299,7 +299,7 @@ def classify(classes = classes, query="tag:new"):
                 if not(p): print(msg, msg.get_header("subject"))
                 if x not in exist:
                     print("+", x, r)
-                    msg.add_tag(x)
+                    if not(dry_run): msg.add_tag(x)
                 else:
                     print("=", x, r)
                 p = True
@@ -323,9 +323,9 @@ try:
                 pass
             connect_db()
             train()
-        elif sys.argv[1] == '--tag':
+        elif sys.argv[1] == '--tag' or sys.argv[1] == '--dry-run':
             query = ' '.join(sys.argv[2:])
-            classify(query=query)
+            classify(query=query, dry_run = sys.argv[1] == '--dry-run')
         elif sys.argv[1] == "--retrain":
             query = sys.argv[2]
             tags = sys.argv[3:]
