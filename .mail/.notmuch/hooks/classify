@@ -17,6 +17,7 @@ import chardet
 MIN_COUNT      = 5
 MIN_COUNT_PROB = 0.5
 EXCLUSIVE      = 0.99
+UNTRAINED = "untrained"
 
 nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
 all_tags = list(nm.get_all_tags())
@@ -25,7 +26,7 @@ del nm
 boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
                "flagged", "signed", "encrypted", "new",
                "meeting", "accepted", "rejected", "tentative",
-               "low-importance", "normal-importance", "high-importance"]
+               "low-importance", "normal-importance", "high-importance", UNTRAINED]
 
 def not_boring(tag):
     return not(tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS'))
@@ -40,11 +41,9 @@ html_parser.ignore_tables = True
 classes = set(filter(not_boring, all_tags))
 
 db_file = os.path.expanduser('~/.mail/classifier.db')
-mt_file = os.path.expanduser('~/.mail/classifier.updated')
 db = None
 dbc = None
 total_words = None
-db_last_modified = None
 
 tag_threshold = defaultdict(lambda:float(0.93))
 tag_strength = defaultdict(lambda:float(1))
@@ -57,11 +56,6 @@ def connect_db():
     global dbc
     global db_last_modified
     global total_words
-
-    if os.path.exists(mt_file) and os.path.exists(db_file):
-        db_last_modified = os.path.getmtime(mt_file)
-    else:
-        db_last_modified = None
 
     db = sqlite3.connect(db_file)
     db.row_factory = sqlite3.Row
@@ -242,43 +236,44 @@ def classify_words(c, words):
     except:
         print("error in", c, words)
 
-def train(classes = classes):
-    qry = '(tag:spam or not tag:spam)'
-    if db_last_modified:
-        import datetime
-        d = datetime.datetime.fromtimestamp(db_last_modified)
-        qry = qry + ' and date:%d..' %(d.strftime("%Y-%m-%d %H:%M"), )
-    print(qry)
-    nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+def train(classes = classes, query=''):
+    qry = '(tag:spam or not tag:spam)' +  (' and ' + query if len(query) else '')
+    nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
     query = nm.create_query(qry)
+    print(qry)
     count = query.count_messages()
     counter = 0
-    content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
     del nm
-    for fi, ts in content:
+    for msg in query.search_messages():
+        fi = msg.get_filename()
+        ts = set(msg.get_tags())
         words = count_words(fi)
         db_add_document(set.intersection(classes, set(ts)), words)
         counter = counter + 1
         print(str(counter), '/', str(count))
         if counter % 1000 == 0: db.commit()
+        msg.remove_tag(UNTRAINED)
     db.commit()
     del query
-    with open(mt_file, 'w') as mt:
-        mt.write('ok')
 
 def retrain(query, changed_classes):
     changed_classes = list(filter(lambda x : tag_part(x) in classes, changed_classes))
 
     if len(changed_classes) > 0:
-        nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+        nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
         query = nm.create_query(query)
         content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
-
-        for fi, ts in content:
+        for msg in query.search_messages():
+            fi = msg.get_filename()
+            ts = set(msg.get_tags())
             words = count_words(fi)
-            db_add_document(changed_classes, words, new_doc = False)
-        db.commit()
+            if UNTRAINED in ts:
+                db_add_document(ts, words, new_doc = True)
+            else:
+                db_add_document(changed_classes, words, new_doc = False)
+            msg.remove_tag(UNTRAINED)
 
+        db.commit()
         del query
 
 def classify(classes = classes, query="tag:new", dry_run = False):
@@ -310,12 +305,25 @@ def classify(classes = classes, query="tag:new", dry_run = False):
 
     del new
 
+def phelp():
+    list(map(print,
+        ["--train - train on 'tag:untrained' and remove tag",
+         "--train-full - train on all messages, and remove untrained tag",
+         "--tag query (or --dry-run) - classify messages in query given",
+         "--retrain query +tag -tag - retrain on given messages, or train if they are tagged untrained",
+         "--stats word - stats for words",
+         "--clean - remove stopwords if new stopwords"
+        ]))
+
 try:
     if __name__=="__main__":
         connect_db()
         import sys
-        if sys.argv[1] == '--train':
-            train()
+
+        if len(sys.argv) < 2:
+            phelp()
+        elif sys.argv[1] == '--train':
+            train(query = 'tag:untrained')
         elif sys.argv[1] == "--train-full":
             try:
                 os.remove(db_file)
@@ -340,5 +348,7 @@ try:
             for word in common_words:
                 dbc.execute("delete from v where word = ?", (word, ))
             db.commit()
+        else:
+            phelp()
 finally:
     db.close()
