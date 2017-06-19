@@ -264,12 +264,16 @@ def retrain(query, changed_classes):
         query = nm.create_query(query)
         content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
         for msg in query.search_messages():
+
             fi = msg.get_filename()
             ts = set(msg.get_tags())
             words = count_words(fi)
             if UNTRAINED in ts:
+                ts = set.intersection(ts, classes)
+                print("learn", msg, ts)
                 db_add_document(ts, words, new_doc = True)
             else:
+                print("retrain", msg, changed_classes)
                 db_add_document(changed_classes, words, new_doc = False)
             msg.remove_tag(UNTRAINED)
 
