@@ -53,7 +53,7 @@ other_email=t@larkery.com;
 
 [new]
 tags=inbox;new;untrained
-ignore=
+ignore=.uidvalidity;.mbsyncstate
 
 # Search configuration
 #
