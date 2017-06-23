@@ -1,36 +1,170 @@
 #!/usr/bin/env nix-shell
 #! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch python35Packages.html2text python35Packages.chardet
 
-from   __future__ import print_function
+## http://machinelearning.wustl.edu/mlpapers/paper_files/icml2003_RennieSTK03.pdf
+## § 4.4
+
+from math import log
+import sqlite3
+
 import os
 import re
 import notmuch
-import sqlite3
 from collections import Counter, defaultdict
 import email
-from math import log
+
 import html2text
 import chardet
 
-## https://github.com/codebox/bayesian-classifier
-
-MIN_COUNT      = 5
-MIN_COUNT_PROB = 0.5
-EXCLUSIVE      = 0.99
 UNTRAINED = "untrained"
+
+class DB:
+    def __init__(self, db_path):
+        self.db = sqlite3.connect(db_path)
+        self.db.row_factory = sqlite3.Row
+        self.db.create_function("log", 1, log)
+        self.dbc = self.db.cursor()
+        self.create_tables()
+        self.dc_cache = {}
+        self.labels = set([])
+
+    def close(self):
+        self.db.commit()
+        self.db.close()
+
+    def create_tables(self):
+        try:
+            self.query("create table words (word text, docs int default 0, total_score real default 0, unique(word) on conflict ignore)")
+            self.query("create index w on words(word)")
+        except:
+            pass
+
+        try:
+            self.query("insert into words (word) values ('')")
+        except:
+            pass
+
+    def register_labels(self, labels):
+        self.labels = set.union(self.labels, set(labels))
+        for label in labels:
+            try:
+                self.query("alter table words add column `%s` real default 0" % (label, ))
+            except:
+                pass
+            try:
+                self.query("alter table words add column `%s_in` real default 0" % (label, ))
+                self.query("alter table words add column `%s_out` real default 0"% (label, ))
+            except:
+                pass
+
+    def query(self, q, x = None):
+        if x == None:return self.dbc.execute(q)
+        else:return self.dbc.execute(q, x)
+
+    def document_count(self, containing_word = ''):
+        if containing_word not in self.dc_cache:
+            res = self.query("select docs from words where word = ?", (containing_word, )).fetchone()
+            res = res[0] if res else 0
+            self.dc_cache[containing_word] = res
+        return self.dc_cache[containing_word]
+
+    def idf(self, word):
+        dc = self.document_count()
+        dcw = self.document_count(containing_word = word)
+        return log((1+dc) / (1+float(dcw)))
+
+    def score_document(self, document, label):
+        score_in = 0
+        score_out = 0
+        for word in document:
+            idf = self.idf(word)
+            res = self.query("select `%s_in`, `%s_out` from words where word = ?" % (label, label),
+                             (word, )).fetchone()
+            if res:
+                contrib_in  = idf * document[word] * res[0]
+                contrib_out = idf * document[word] * res[1]
+                score_in  = score_in  + contrib_in
+                score_out = score_out + contrib_out
+        return (score_in, score_out)
+
+    def update_document(self, document, labels, is_new = True):
+        self.register_labels(map(lambda x : x[1], labels))
+        document = {word:log(document[word] + 1) for word in document} ## TF
+        norm = sum([value ** 2 for value in document.values()])**0.5
+        document = {word:document[word] / norm for word in document} ## normalize
+
+        if is_new:
+            self.query("update words set docs = docs + 1 where word = ''")
+        fields = ["docs = docs + 1, total_score = total_score + ?"] if is_new else []
+        fields.extend(map(lambda lbl : "`%s` = `%s` %s ?" % (lbl[1], lbl[1], "+" if is_new or lbl[0] else "-"), labels))
+        query = "update words set %s where word = ?" % (", ".join(fields), )
+        nfields = len(labels) + (1 if is_new else 0)
+
+        for (word, score) in document.items():
+            values = [score] * nfields
+            values.append(word)
+            res = self.query(query, values)
+            if res.rowcount == 0:
+                self.query("insert into words (word) values (?)", (word, ))
+                self.query(query, values)
+
+        self.db.commit()
+        self.dc_cache = {}
+
+    def update_weights(self):
+        ## compute logs
+        labels = self.labels
+        query = "update words set {in_fields}, {out_fields}".format(
+            in_fields = ", ".join(["`{lbl}_in` = ( `{lbl}` / (select sum(`{lbl}`) from words) )".format(lbl = lbl)
+                                   for lbl in labels]),
+            out_fields = ", ".join(["`{lbl}_out` = ( (total_score - `{lbl}`) / (select sum(total_score - `{lbl}`) from words) )".format(lbl = lbl)
+                                    for lbl in labels]))
+
+        self.query(query)
+
+        self.query("update words set {fields}".format(fields = ", ".join(["`{lbl}_in` = log(1 + `{lbl}_in`), `{lbl}_out` = log(1 + `{lbl}_out`)".format(lbl = lbl) for lbl in labels])))
+        ## then normalize the scores - why is this good? I don't know
+        fields = ", ".join([
+            ("`{l}_in` = `{l}_in` / (select sum(`{l}_in`) from words), `{l}_out` = `{l}_out` / (select sum(`{l}_out`) from words)".format(l = label))
+            for label in self.labels
+        ])
+        self.query("update words set %s" % (fields, ))
+        self.db.commit()
+
+    def reset(self):
+        try:
+            self.query("delete from words")
+            self.query("insert into words (word) values ('')")
+        except:
+            pass
+
+def scores(document, labels):
+    return {label: sum([document[word] * word_weight(label, word) for word in document.keys()])
+            for label in labels}
+
+def word_weight(label, word):
+    theta_hat = (count_word_not_in(label, word) + alpha_i) / (count_all_words_not_in(label) + alpha)
+    log_theta_hat = log(theta_hat)
+
+    return log_theta_hat / total_word_weight(label) # this is a nuisance
+
+db_path = os.path.expanduser("~/.mail/classifier2.db")
+db = DB(db_path)
 
 nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
 all_tags = list(nm.get_all_tags())
 del nm
 
 boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
-               "flagged", "signed", "encrypted", "new",
+               "flagged", "signed", "encrypted", "new", "draft",
                "meeting", "accepted", "rejected", "tentative",
                "low-importance", "normal-importance", "high-importance", UNTRAINED]
 
 def not_boring(tag):
     return not(tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS'))
 
+classes = set(filter(not_boring, all_tags))
+db.register_labels(classes)
 
 html_parser = html2text.HTML2Text()
 html_parser.ignore_links = True
@@ -38,65 +172,21 @@ html_parser.decode_errors = 'replace'
 html_parser.ignore_anchors = True
 html_parser.ignore_tables = True
 
-classes = set(filter(not_boring, all_tags))
+junk = ['body', 'head', 'pre', 'p', 'div', 'span', 'hr', 'ol', 'li',
+        'com', 'org', 'net', 'uk', 'ac',
+        'http', 'mailto']
 
-db_file = os.path.expanduser('~/.mail/classifier.db')
-db = None
-dbc = None
-total_words = None
+bad_regex = re.compile("^(" + "|".join([ 'x[0-9a-f]{2}', '[a-f0-9]+' ] + junk) + ")$")
 
-tag_threshold = defaultdict(lambda:float(0.93))
-tag_strength = defaultdict(lambda:float(1))
-
-# spam is twice as bad as normal
-tag_strength['spam'] = 2
-
-def connect_db():
-    global db
-    global dbc
-    global db_last_modified
-    global total_words
-
-    db = sqlite3.connect(db_file)
-    db.row_factory = sqlite3.Row
-    dbc = db.cursor()
-
-
-    try:
-        dbc.execute("create table v (word text, n int default 0, unique(word) on conflict ignore)")
-        dbc.execute("create table d (class text, n int default 0, unique(class) on conflict ignore)")
-        dbc.execute("create index w on v (word)")
-    except:
-        pass
-
-    for c in classes:
-        try:
-            dbc.execute("alter table v add column `%s` int default 0" % (c, ))
-        except:
-            pass
-    total_words = dbc.execute("select count(*) from v").fetchone()[0]
-
-common_words = set(['the','be','to','of','and','a','in','that','have','it',
-                    'is','im','are','was','for','on','with','he','as','you',
-                    'do','at','this','but','his','by','from','they','we','say',
-                    'her','she','or','an','will','my','one','all','would',
-                    'there','their','what','so','up','out','if','about','who',
-                    'get','which','go','me','when','make','can','like','time',
-                    'just','him','know','take','person','into','year','your',
-                    'some','could','them','see','other','than','then','now',
-                    'look','only','come','its','over','think','also','back',
-                    'after','use','two','how','our','way','even','because',
-                    'any','these','us', 'http', 'com', 'not', 'has', 'www',
-                    'org', 'uk', 'ac', 'co', 'larkery', 'no', 'hi', 'am', 'cs', 'bris',
-                    'x[0-9a-f]{2}', '[a-f0-9]+', 'gt', 'hr', 'lt', 'gt'])
-
-bad_regex = re.compile("^"+"|".join(common_words)+"$")
+def is_not_junk(word):
+    return len(word) > 2 and len(word) < 30 and not(bad_regex.match(word))
 
 def good_words(txt):
     if txt == None: return []
-    words = re.split('\W+', txt)
-    words = map(lambda x : x.lower(), words)
-    words = filter(lambda x : not(len(x) < 2 or len(x) > 30 or x.isdigit() or bad_regex.match(x)), words)
+    words = re.split("\\s|[.;:\\(\\)\\[\\]/\\!?_@-]", txt)
+    words = map(lambda x : re.sub(r"[^a-z0-9']+", "", x.lower()), words)
+    words = filter(is_not_junk, words)
+#    print(txt, list(words))
     return words
 
 def try_decode(payload):
@@ -137,104 +227,13 @@ def count_words(fn):
                 md = html_parser.handle(html)
                 result.update(good_words(md))
 
-    return result.items()
-
-def tag_part(tag):
-    if tag[0] == '+' or tag[0] == '-':
-        return tag[1:]
-    else:
-        return tag
-
-def tag_sign(tag):
-    if tag[0] == '+' or tag[0] == '-':
-        return tag[:1]
-    else:
-        return "+"
-
-def db_add_document(cs, freq, new_doc=True):
-    if new_doc:
-        dbc.execute("insert into d (class) values ('*')")
-        dbc.execute("update d set n = n + 1 where class = '*'")
-
-    for c in cs:
-        tag = tag_part(c)
-        sgn = tag_sign(c)
-        dbc.execute("insert into d (class) values (?)", (tag,))
-        dbc.execute("update d set n = n %s 1 where class = ?" % (sgn, ), (tag,))
-
-    def set_tag(t):
-        tag = tag_part(t)
-        sgn = tag_sign(t)
-        return "`%s` = `%s` %s ?" % (tag, tag, sgn)
-
-    for (w, count) in freq:
-        count
-        dbc.execute("insert into v (word) values (?);", (w, ))
-        fields = list(cs)
-        params = [int(count * tag_strength[c]) for c in fields]
-        if new_doc:
-            fields.append("n")
-            params.append(count)
-        params.append(w)
-        fields = ", ".join(map(set_tag, fields))
-        dbc.execute("update v set %s where word = ?" %(fields,), params)
-
-def db_class_word_counts(c, word):
-    ## find the number of times word is in and out of class
-    r = dbc.execute("select `%s`, n-`%s` from v where word=?" % (c,c), (word, )).fetchone()
-    if r == None: return (0, 0)
-    return r
-
-p_doc_memo = {}
-
-def db_class_p_doc(c):
-    if c not in p_doc_memo:
-        doccount = dbc.execute("select n from d where class = '*'").fetchone()[0]
-        doccount_c = dbc.execute("select n from d where class=?", (c, )).fetchone()[0]
-        p_in = doccount_c / float(doccount)
-        p_doc_memo[c] = (p_in, 1-p_in)
-    return p_doc_memo[c]
-
-total_memo = {}
-
-
-def db_class_total_counts(c):
-    ## find total number of words seen in and out of c
-    if c in total_memo:
-        return total_memo[c]
-    r = dbc.execute("select sum(`%s`), sum(n - `%s`) from v" %(c, c)).fetchone()
-    if r == None: r = (0,0)
-    total_memo[c] = r
-    return r
-
-def pw_estimate(count, total):
-    ## laplacian smoothed estimate
-    result = (max(count, 0)+1) / float(max(total, 0) + total_words)
     return result
 
-
-def classify_word(c, word):
-    (count_in, count_out) = db_class_word_counts(c, word)
-    (total_in, total_out) = db_class_total_counts(c)
-
-    return (pw_estimate(count_in, total_in),
-            pw_estimate(count_out, total_out))
-
-def classify_words(c, words):
-    try:
-       prod, prodcomp = db_class_p_doc(c)
-       prod = log(prod)
-       prodcomp = log(prodcomp)
-       for (word, count) in words:
-           (p_in, p_out) = classify_word(c, word)
-           if p_in == 0 or p_out == 0:
-               print ("bad word probability", p_in, p_out)
-           prod = prod + count*log(p_in)
-           prodcomp = prodcomp + count*log(p_out)
-
-       return (prod, prodcomp)
-    except:
-        print("error in", c, words)
+def tagop_to_label(tag):
+    if tag[0] == '+' or tag[0] == '-':
+        return (tag[0] == '+', tag[1:])
+    else:
+        return (True, tag)
 
 def train(classes = classes, query=''):
     qry = '(tag:spam or not tag:spam)' +  (' and ' + query if len(query) else '')
@@ -246,66 +245,103 @@ def train(classes = classes, query=''):
     del nm
     for msg in query.search_messages():
         fi = msg.get_filename()
-        ts = set(msg.get_tags())
+        ts = list(map(tagop_to_label, set.intersection(set(msg.get_tags()), classes)))
         words = count_words(fi)
-        db_add_document(set.intersection(classes, set(ts)), words)
+        db.update_document(words, ts)
         counter = counter + 1
         print(str(counter), '/', str(count))
-        if counter % 1000 == 0: db.commit()
         msg.remove_tag(UNTRAINED)
-    db.commit()
+    db.update_weights()
     del query
 
 def retrain(query, changed_classes):
-    changed_classes = list(filter(lambda x : tag_part(x) in classes, changed_classes))
+    changed_classes = list(filter(lambda x: x[1] in classes, map(tagop_to_label, changed_classes)))
 
     if len(changed_classes) > 0:
         nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
         query = nm.create_query(query)
         content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
         for msg in query.search_messages():
-
             fi = msg.get_filename()
             ts = set(msg.get_tags())
             words = count_words(fi)
             if UNTRAINED in ts:
-                ts = set.intersection(ts, classes)
+                ts = list(map(tagop_to_label, set.intersection(set(msg.get_tags()), classes)))
                 print("learn", msg, ts)
-                db_add_document(ts, words, new_doc = True)
+                db.update_document(words, ts, is_new = True)
             else:
                 print("retrain", msg, changed_classes)
-                db_add_document(changed_classes, words, new_doc = False)
+                db.update_document(words, list(map(tagop_to_label, changed_classes)), is_new = False)
             msg.remove_tag(UNTRAINED)
 
-        db.commit()
+        db.update_weights()
         del query
+
+def threshold(label):
+    nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
+    qry = nm.create_query("tag:{label}".format(label = label))
+    in_threshold  = 10000000000000000000
+    out_threshold = 0
+    for msg in qry.search_messages():
+        res = db.score_document(count_words(msg.get_filename()), label)
+        t = res[0] / res[1]
+        if t < in_threshold:
+            in_threshold = t
+            print(t, msg, msg.get_header('subject'))
+    del qry
+    print("".join(["-"] * 20))
+    qry = nm.create_query("not tag:{label}".format(label = label))
+    for msg in qry.search_messages():
+        res = db.score_document(count_words(msg.get_filename()), label)
+        t = res[0] / res[1]
+        if t > out_threshold:
+            out_threshold = t
+            print(t, msg, msg.get_header('subject'))
+    del nm
+
+class_thresholds = defaultdict(lambda : float(3.4))
+class_thresholds['spam'] = 8.0
 
 def classify(classes = classes, query="tag:new", dry_run = False):
     nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
     new = nm.create_query(query)
     def fmt(a):
-        (x, (i, o)) = a
-        return "    %s%s: %.2f v %.2f" % ("+" if i > o else "-", x, i, o)
-    for msg in new.search_messages():
+        return "% .2f %12s  %.2f %.2f" % a
 
+    for msg in new.search_messages():
         words = count_words(msg.get_filename())
-        res = {c : classify_words(c, words) for c in classes}
+        res = {c : db.score_document(words, c) for c in classes}
         p = False
         exist = set(msg.get_tags())
+
+        missing_but_suggested = []
+        present_but_not_suggested = []
+        correctly_present = []
+        correctly_absent  = []
+
         for (x, (i, o)) in res.items():
-            r = o/i
-            if r > tag_threshold[x]:
-                if not(p): print(msg, msg.get_header("subject"))
-                if x not in exist:
-                    print("+", x, r)
-                    if not(dry_run): msg.add_tag(x)
-                else:
-                    print("=", x, r)
-                p = True
-            elif x in exist:
-                if not(p): print(msg, msg.get_header("subject"))
-                print("X", x, r)
-                p = True
+            if i / o > class_thresholds[x]:
+                if x not in exist: target = missing_but_suggested
+                else: target = correctly_present
+            elif x in exist: target = present_but_not_suggested
+            else: target = correctly_absent
+            target.append( (i/o, x, o, i) )
+        print(msg.get_header("subject"), "  ", msg)
+        for x in missing_but_suggested:
+            if not(dry_run): msg.add_tag(x[1])
+        missing_but_suggested.sort()
+        present_but_not_suggested.sort()
+        correctly_absent.sort()
+        correctly_present.sort()
+        for x in missing_but_suggested:
+            print("+", fmt(x))
+        if dry_run:
+            for x in present_but_not_suggested:
+                print("-", fmt(x))
+            for x in correctly_present:
+                print("=", fmt(x))
+            for x in correctly_absent:
+                print(":", fmt(x))
 
     del new
 
@@ -315,26 +351,24 @@ def phelp():
          "--train-full - train on all messages, and remove untrained tag",
          "--tag query (or --dry-run) - classify messages in query given",
          "--retrain query +tag -tag - retrain on given messages, or train if they are tagged untrained",
-         "--stats word - stats for words",
-         "--clean - remove stopwords if new stopwords"
+         "--stats word - stats for words"
         ]))
 
 try:
     if __name__=="__main__":
-        connect_db()
         import sys
 
         if len(sys.argv) < 2:
             phelp()
+        elif sys.argv[1] == "--threshold":
+            threshold(sys.argv[2])
         elif sys.argv[1] == '--train':
             train(query = 'tag:untrained')
         elif sys.argv[1] == "--train-full":
-            try:
-                os.remove(db_file)
-            except:
-                pass
-            connect_db()
+            db.reset()
             train()
+        elif sys.argv[1] == "--update-weights":
+            db.update_weights()
         elif sys.argv[1] == '--tag' or sys.argv[1] == '--dry-run':
             query = ' '.join(sys.argv[2:])
             classify(query=query, dry_run = sys.argv[1] == '--dry-run')
@@ -348,10 +382,6 @@ try:
             for row in res:
                 print (row[0], row[1], row[2])
             pass
-        elif sys.argv[1] == "--clean":
-            for word in common_words:
-                dbc.execute("delete from v where word = ?", (word, ))
-            db.commit()
         else:
             phelp()
 finally:

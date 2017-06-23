@@ -36,7 +36,7 @@ $sem->setval(0, 1);
 sub lock_system {
     my ($command) = @_;
     $sem->op(0, -1, SEM_UNDO);
-    system("$command 2>/dev/null >/dev/null");
+    system("$command");
     $sem->op(0, 1, SEM_UNDO);
 }
 

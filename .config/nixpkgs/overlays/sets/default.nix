@@ -27,6 +27,7 @@ self: super:
            validate
            optparse
            Hmisc
+           lintr
         ];
      })];
    };

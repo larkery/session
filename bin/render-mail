@@ -1,9 +1,20 @@
 #!/bin/sh
-
+ENCODING_OPTION=""
+case "$1" in
+    us-ascii|iso-8859-1)
+        ENCODING_OPTION="--input-encoding ascii"
+        ;;
+    utf-8)
+        ENCODING_OPTION="--input-encoding utf8"
+        ;;
+    *)
+        echo "Unknown encoding: $1"
+esac
 #notify-send "wat wat"
 # email tidying up process for render in emacs.
 # continuing the endless struggle against outlook, the worst email program
-tidy -q -config ~/.config/html-tidy/tidy.conf |
+tidy -q -config ~/.config/html-tidy/tidy.conf ${ENCODING_OPTION} |
     # could use mojolicious to remove garbage and add > for divs with left line
-    w3m -cols "$1" -o display_link_number=1 -o display_charset=UTF-8 -dump -T text/html |
+    w3m -cols "$2" -o display_link_number=1 -o display_charset=UTF-8 \
+        -o ext_halfdump=1 -o pre_conv=1 -halfdump -T text/html |
     perl -pe '$/=""; s/\n+/\n/;'
