@@ -96,12 +96,12 @@ class DB:
         if is_new:
             self.query("update words set docs = docs + 1 where word = ''")
         fields = ["docs = docs + 1, total_score = total_score + ?"] if is_new else []
-        fields.extend(map(lambda lbl : "`%s` = `%s` %s ?" % (lbl[1], lbl[1], "+" if is_new or lbl[0] else "-"), labels))
+        fields.extend(map(lambda lbl : "`%s` = `%s` + ?" % (lbl[1], lbl[1]), labels))
         query = "update words set %s where word = ?" % (", ".join(fields), )
-        nfields = len(labels) + (1 if is_new else 0)
 
         for (word, score) in document.items():
-            values = [score] * nfields
+            values = [score] if is_new else []
+            values.extend([score * label[0] for label in labels])
             values.append(word)
             res = self.query(query, values)
             if res.rowcount == 0:
@@ -232,10 +232,12 @@ def count_words(fn):
     return result
 
 def tagop_to_label(tag):
-    if tag[0] == '+' or tag[0] == '-':
-        return (tag[0] == '+', tag[1:])
+    if tag[0] == '+':
+        return (1.5, tag[1:])
+    elif tag[0] == '-':
+        return (-1.5, tag[1:])
     else:
-        return (True, tag)
+        return (1, tag)
 
 def train(classes = classes, query=''):
     qry = '(tag:spam or not tag:spam)' +  (' and ' + query if len(query) else '')
@@ -268,12 +270,18 @@ def retrain(query, changed_classes):
             ts = set(msg.get_tags())
             words = count_words(fi)
             if UNTRAINED in ts:
-                ts = list(map(tagop_to_label, set.intersection(set(msg.get_tags()), classes)))
-                print("learn", msg, ts)
-                db.update_document(words, ts, is_new = True)
+                changed_tags = set(map(lambda x:x[1], changed_classes))
+                doc_changed_classes = changed_classes[:]
+
+                for tag in msg.get_tags():
+                    if tag in classes and tag not in changed_tags:
+                        doc_changed_classes.append( (1, tag) )
+
+                print("learn+train", msg, doc_changed_classes)
+                db.update_document(words, doc_changed_classes, is_new = False)
             else:
                 print("retrain", msg, changed_classes)
-                db.update_document(words, list(map(tagop_to_label, changed_classes)), is_new = False)
+                db.update_document(words, changed_classes, is_new = False)
             msg.remove_tag(UNTRAINED)
 
         db.update_weights()
