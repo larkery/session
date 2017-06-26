@@ -18,6 +18,13 @@ import chardet
 
 UNTRAINED = "untrained"
 
+
+boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
+               "flagged", "signed", "encrypted", "new", "draft",
+               "meeting", "accepted", "rejected", "tentative",
+               "low-importance", "normal-importance", "high-importance", UNTRAINED,
+               "391"] ## 391 has very low evidence, so keeps coming up
+
 class DB:
     def __init__(self, db_path):
         self.db = sqlite3.connect(db_path)
@@ -156,11 +163,6 @@ db = DB(db_path)
 nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
 all_tags = list(nm.get_all_tags())
 del nm
-
-boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
-               "flagged", "signed", "encrypted", "new", "draft",
-               "meeting", "accepted", "rejected", "tentative",
-               "low-importance", "normal-importance", "high-importance", UNTRAINED]
 
 def not_boring(tag):
     return not(tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS'))
