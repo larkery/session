@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell --show-trace -i python -p python python27Packages.notmuch
+#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch
 
 from   __future__ import print_function
 import notmuch, os, shutil, sys
@@ -159,8 +159,10 @@ def S(things):
     return fn
 
 def restrict(query, actions):
-    return map(lambda (Q, A): ( '%s AND (%s)' % (query, Q) , A ),  actions)
-
+    def _restrict(x):
+        (Q, A) = x
+        return ( '%s AND (%s)' % (query, Q) , A )
+    return map(_restrict,  actions)
 
 def sleepy_tag(t):
     if t.startswith('asleep-until'):
@@ -169,7 +171,7 @@ def sleepy_tag(t):
             return True
     return False
 
-sleepy_tags = filter(sleepy_tag, db.get_all_tags())
+sleepy_tags = list(filter(sleepy_tag, db.get_all_tags()))
 
 def manage_inbox(me, folders):
     actions = [
@@ -179,8 +181,10 @@ def manage_inbox(me, folders):
     ]
 
     if sleepy_tags:
-        actions = actions + (' OR '.join(map(lambda t : 'tag:'+t, sleepy_tags)),
-                             awaken(sleepy_tags, '%(inbox)s' % folders))
+        for tag in sleepy_tags:
+            actions.append(
+                (' OR '.join(map(lambda t : 'tag:'+t, sleepy_tags)), awaken(sleepy_tags, '%(inbox)s' % folders))
+            )
 
     return restrict('path:%(root)s/**' % folders, actions)
 
