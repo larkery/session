@@ -80,7 +80,10 @@ class DB:
         dcw = self.document_count(containing_word = word)
         return log((1+dc) / (1+float(dcw)))
 
-    def score_document(self, document, label):
+    def score_document(self, document, label, verbose = False):
+        if verbose:
+            word_scores = []
+
         score_in = 0
         score_out = 0
         for word in document:
@@ -92,6 +95,13 @@ class DB:
                 contrib_out = idf * document[word] * res[1]
                 score_in  = score_in  + contrib_in
                 score_out = score_out + contrib_out
+                if verbose:
+                    word_scores.append( (score_in - score_out, word) )
+        if verbose:
+            word_scores.sort(reverse = True)
+            print("+%-10s" % (label,), "\t", ", ".join( map(lambda x: "%12s: %.1f" % (x[1], x[0]), word_scores[:10]) ) )
+            print("-%-10s" % (label,), "\t", ", ".join( map(lambda x: "%12s: %.1f" % (x[1], x[0]), word_scores[-10:]) ) )
+
         return (score_in, score_out)
 
     def update_document(self, document, labels, is_new = True):
@@ -103,7 +113,7 @@ class DB:
         if is_new:
             self.query("update words set docs = docs + 1 where word = ''")
         fields = ["docs = docs + 1, total_score = total_score + ?"] if is_new else []
-        fields.extend(map(lambda lbl : "`%s` = `%s` + ?" % (lbl[1], lbl[1]), labels))
+        fields.extend(map(lambda lbl : "`%s` = max(0, `%s` + ?)" % (lbl[1], lbl[1]), labels))
         query = "update words set %s where word = ?" % (", ".join(fields), )
 
         for (word, score) in document.items():
@@ -314,7 +324,7 @@ def threshold(label):
 class_thresholds = defaultdict(lambda : float(3.4))
 class_thresholds['spam'] = 8.0
 
-def classify(classes = classes, query="tag:new", dry_run = False):
+def classify(classes = classes, query="tag:new", dry_run = False, verbose = False, one_label = None):
     nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
     new = nm.create_query(query)
     def fmt(a):
@@ -322,14 +332,15 @@ def classify(classes = classes, query="tag:new", dry_run = False):
 
     for msg in new.search_messages():
         words = count_words(msg.get_filename())
-        res = {c : db.score_document(words, c) for c in classes}
+        if one_label: classes = set([one_label])
+        res = {c : db.score_document(words, c, verbose = verbose) for c in classes}
         p = False
         exist = set(msg.get_tags())
 
-        missing_but_suggested = []
+        missing_but_suggested     = []
         present_but_not_suggested = []
-        correctly_present = []
-        correctly_absent  = []
+        correctly_present         = []
+        correctly_absent          = []
 
         for (x, (i, o)) in res.items():
             if i / o > class_thresholds[x]:
@@ -382,6 +393,8 @@ try:
         sub = subs.add_parser('classify', help='Classify some messages and change their tags')
         sub.add_argument("query", type=str, help="The messages to classify", nargs='*')
         sub.add_argument("--dry-run", action='store_true', help="If specified, don't change tags")
+        sub.add_argument("--verbose", action='store_true', help="If specified, print out the values each word contributes to each class")
+        sub.add_argument("--tag", help="If given, only run this tag")
 
         args = parser.parse_args()
 
@@ -396,7 +409,7 @@ try:
         elif args.command == 'retrain':
             retrain(args.query, args.tag)
         elif args.command == 'classify':
-            classify(query = ' '.join(args.query), dry_run = args.dry_run)
+            classify(query = ' '.join(args.query), dry_run = args.dry_run, verbose=args.verbose, one_label=args.tag)
 
 finally:
     db.close()
