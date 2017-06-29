@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch
+#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch python35Packages.argparse
 
 from   __future__ import print_function
 import notmuch, os, shutil, sys
@@ -247,48 +247,35 @@ def channel_name(maildir):
     return result
 
 if __name__ == "__main__":
-    if '-f' in sys.argv:
-        # fix maildir uid schemes
-        print("fixing maildir uid schemes", file=sys.stderr)
-        map(fix_uids, os.walk(base_maildir))
-    elif '-dedup' in sys.argv:
-        print("deduplicating messages", file=sys.stderr)
-        q = db.create_query("*")
+    import argparse
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--verbose', help='Print verbose output to standard error', action='store_true')
+    parser.add_argument('--dry-run', help='Dry-run only; print changes but do not perform them', action='store_true')
+
+
+    args = parser.parse_args()
+    affected_maildirs = set()
+
+    if args.dry_run:
+        args.verbose = True
+
+    def lg(s):
+        if args.verbose: print(s, file=sys.stderr)
+
+    for query, action in actions:
+        q = db.create_query(query)
+        lg('do %s on %s' % (action.__name__, query))
         counter = 0
         for m in q.search_messages():
-            fns = [str(x) for x in m.get_filenames()]
-            if len(fns) > 1:
-                mds = set([md(x) for x in fns])
-                print(m)
-                if len(mds) > 1:
-                    print('\tin ' + ', '.join(mds))
-                else:
-                    print('\tall in' + list(mds)[0])
-                    for fn in fns[1:]:
-                        db.remove_message(fn)
-                        os.remove(fn)
-                counter = counter + 1
-        del q
-        print('dupes:', counter)
-    else:
-        log = '-v' in sys.argv
-        act = '-d' not in sys.argv
-
-        affected_maildirs = set()
-
-        for query, action in actions:
-            q = db.create_query(query)
-            if (log):
-                print('run %s -> %s' % (query, action.__name__), file=sys.stderr)
-            counter = 0
-            for m in q.search_messages():
-                counter = counter + 1
-                if act:
+            counter = counter + 1
+            lg('\t%s %s' % (action.__name__, m.get_message_id()))
+            if not(args.dry_run):
+                try:
                     affected_maildirs.update(action(m, db))
-                if not(act) or log:
-                    print('\t%s %s' % (action.__name__, m.get_message_id()), file=sys.stderr)
-            if (log):
-                print('\t' + str(counter) + ' matched', file=sys.stderr)
-            del q
-
+                except:
+                    print('exception in %s on %s' %(action.__name__, m.get_message_id), file=sys.stderr)
+        lg('%d messages matched %s' % (counter, query))
+        del q
         sys.stdout.write('\n'.join(map(channel_name, affected_maildirs)))
