@@ -22,7 +22,7 @@ if [[ -z "$NO_SYNC" ]]; then
         E=$(mbsync -q -a 2>&1)
         touch "$WATCH"
     else
-        echo sync $CHANGED
+        echo sync "$CHANGED"
         E=$(mbsync -q $CHANGED 2>&1)
     fi
 fi

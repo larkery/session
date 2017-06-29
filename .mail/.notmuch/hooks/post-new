@@ -23,7 +23,7 @@ fi
 
 # if the refiler changed some stuff, we should probably sync again
 if [[ $#CHANGED -gt 1 ]]; then
-    echo $#CHANGED "$CHANGED"
+    echo "$#CHANGED" "$CHANGED"
     mbsync -q $CHANGED 2>&1
 fi
 
