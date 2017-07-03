@@ -277,4 +277,7 @@ if __name__ == "__main__":
                     print('exception in %s on %s' %(action.__name__, m.get_message_id), file=sys.stderr)
         lg('%d messages matched %s' % (counter, query))
         del q
-        sys.stdout.write('\n'.join(map(channel_name, affected_maildirs)))
+    del db
+    lg('affected: %s' % (affected_maildirs, ))
+    for x in map(channel_name, affected_maildirs):
+        print(x)
