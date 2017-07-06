@@ -108,7 +108,7 @@ Q=~/.msmtp.queue
 ##
 #EMAIL_CONN_NOTEST=y                 # deprecated ; use below var
 #EMAIL_CONN_TEST={x| |p|P|n|s}       # see settings above for EMAIL_CONN_TEST
-EMAIL_CONN_TEST=s
+EMAIL_CONN_TEST=P
 EMAIL_QUEUE_QUIET=t
 ## ======================================================================================
 
