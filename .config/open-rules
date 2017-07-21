@@ -1,5 +1,5 @@
-url file:///[\\/]*CSE-BS3-FILE[\\/]
-exec xdg-open "${${1//CSE-BS3-FILE?/\/net/cse-bs3-file/}//\\//}"
+url file:///[\\/]*CSE-BS3-(FILE|DATA)[\\/]
+exec xdg-open "${${1//CSE-BS3-(DATA|FILE)/\/net/cse-bs3-data/}//\\//}"
 scheme file
 exec xdg-open "$(printf '%b' "${${${1//file://}//+/ }//\%/\\x}")"
 mime application/pdf

@@ -43,9 +43,10 @@ Emacs*toolBar:0
 Emacs*FontBackend: xft
 Emacs*font: FONT
 
-xclock*chime: true
-xclock*geometry: 80x80-5-40
+xclock*geometry: 90x38-10+20
 xclock*Foreground:white
 xclock*Background:black
+xclock*analog: false
+xclock*update: 1
 
 #include ".Xresources_emacs"

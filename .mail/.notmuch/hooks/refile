@@ -188,8 +188,20 @@ def manage_inbox(me, folders):
 
     return restrict('path:%(root)s/**' % folders, actions)
 
-manage_spam = []
+def after(n, a):
+    rem = n
+    def fn(m, db):
+        nonlocal rem
+        if rem > 0:
+            rem = rem - 1
+            return []
+        else:
+            return a(m, db)
+    fn.__name__ = 'after({n}, {d})'.format(n=n, d=a.__name__)
+    return fn
 
+only_one_gym = [ ('tag:gym and tag:inbox and autobook', after(1, remove_tag('inbox'))),
+                 ('tag:gym and tag:inbox and registration', after(1, remove_tag('inbox')))]
 delete_deleted = [ ('tag:deleted', delete) ]
 tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
 propagate_headers = [ ('tag:new', tag_headers({
@@ -207,8 +219,8 @@ def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
 
 actions = [item for l in
            [delete_deleted,
-            manage_spam,
             propagate_headers,
+            only_one_gym,
             manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
             manage_inbox('larkery.com', folders('fastmail')),
             tag_calendar] for item in l]
@@ -273,8 +285,10 @@ if __name__ == "__main__":
             if not(args.dry_run):
                 try:
                     affected_maildirs.update(action(m, db))
-                except:
-                    print('exception in %s on %s' %(action.__name__, m.get_message_id), file=sys.stderr)
+                except Exception:
+                    import traceback
+                    print('exception in %s on %s\n' %(action.__name__, m.get_message_id()), file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
         lg('%d messages matched %s' % (counter, query))
         del q
     del db

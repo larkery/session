@@ -39,7 +39,9 @@ self: super:
 
          notmuch isync msmtp html-tidy xmlstarlet
 
-         gitAndTools.gitFull vcsh mr
+         gitAndTools.gitFull 
+#vcsh
+         mr
          pass gnupg
 
          file yad # for xdg-open

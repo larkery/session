@@ -27,7 +27,7 @@ boring_tags = ["deleted", "inbox", "sent", "attachment", "unread", "replied",
 
 class DB:
     def __init__(self, db_path):
-        self.db = sqlite3.connect(db_path)
+        self.db = sqlite3.connect(db_path, timeout=60)
         self.db.row_factory = sqlite3.Row
         self.db.create_function("log", 1, log)
         self.dbc = self.db.cursor()
@@ -274,30 +274,33 @@ def retrain(query, changed_classes):
     changed_classes = list(filter(lambda x: x[1] in classes, map(tagop_to_label, changed_classes)))
 
     if len(changed_classes) > 0:
-        nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)
-        query = nm.create_query(query)
-        content = list([(msg.get_filename(), set(msg.get_tags())) for msg in query.search_messages()])
-        for msg in query.search_messages():
-            fi = msg.get_filename()
-            ts = set(msg.get_tags())
+        with notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY) as nm:
+            qry = nm.create_query(query)
+            content = list([(msg.get_filename(), set(msg.get_tags()), msg.get_message_id())
+                            for msg in qry.search_messages()])
+            del qry
+        for (fi, ts, _) in content:
             words = count_words(fi)
             if UNTRAINED in ts:
                 changed_tags = set(map(lambda x:x[1], changed_classes))
                 doc_changed_classes = changed_classes[:]
 
-                for tag in msg.get_tags():
+                for tag in ts:
                     if tag in classes and tag not in changed_tags:
                         doc_changed_classes.append( (1, tag) )
 
-                print("learn+train", msg, doc_changed_classes)
+                print("learn+train", fi, doc_changed_classes)
                 db.update_document(words, doc_changed_classes, is_new = False)
             else:
-                print("retrain", msg, changed_classes)
+                print("retrain", fi, changed_classes)
                 db.update_document(words, changed_classes, is_new = False)
-            msg.remove_tag(UNTRAINED)
-
+        with notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE) as nm:
+            qry = nm.create_query(query) ## TODO the query could now be wrong, in principle
+            for m in qry.search_messages():
+                m.remove_tag(UNTRAINED)
+            del qry
+        ## remove all the tags on messages we changed
         db.update_weights()
-        del query
 
 def threshold(label):
     nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
@@ -322,7 +325,7 @@ def threshold(label):
     del nm
 
 class_thresholds = defaultdict(lambda : float(3.4))
-class_thresholds['spam'] = 8.0
+class_thresholds['spam'] = 7
 
 def classify(classes = classes, query="tag:new", dry_run = False, verbose = False, one_label = None):
     nm = notmuch.Database(mode=notmuch.Database.MODE.READ_WRITE)

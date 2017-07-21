@@ -1,6 +1,9 @@
 #!/bin/sh
 ENCODING_OPTION=""
 case "$1" in
+    windows-1252)
+        ENCODING_OPTION="--input-encoding win1252"
+        ;;
     us-ascii|iso-8859-1)
         ENCODING_OPTION="--input-encoding ascii"
         ;;

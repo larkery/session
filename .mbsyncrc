@@ -1,7 +1,8 @@
 ########## CSE ##########
 
 IMAPAccount cse
-   Host webmail.cse.org.uk
+#   Host webmail.cse.org.uk
+   Host outlook.office365.com
    User tomh@cse.org.uk
    SSLType STARTTLS
    SystemCertificates yes
@@ -18,7 +19,7 @@ MaildirStore cse-local
 Channel cse
     Master :cse-remote:
     Slave :cse-local:
-    Patterns *
+    Patterns INBOX Drafts Sent\ Items Deleted\ Items Archives Archives/*
     SyncState *
     Create Both
     Expunge Both
