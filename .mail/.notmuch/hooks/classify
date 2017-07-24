@@ -172,12 +172,19 @@ db = DB(db_path)
 
 nm = notmuch.Database(mode=notmuch.Database.MODE.READ_ONLY)
 all_tags = list(nm.get_all_tags())
-del nm
 
 def not_boring(tag):
-    return not(tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS'))
+     boring = tag in boring_tags or tag.startswith('asleep-until') or tag.startswith('EXS')
+     if boring: return False
+     q = nm.create_query("tag:%s" % (tag, ))
+     if q.count_messages() < 10: return False
+     del q
+     return True
 
 classes = set(filter(not_boring, all_tags))
+print("classes:", classes)
+del nm
+
 db.register_labels(classes)
 
 html_parser = html2text.HTML2Text()

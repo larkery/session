@@ -28,6 +28,7 @@ self: super:
            optparse
            Hmisc
            lintr
+           rnrfa
         ];
      })];
    };
