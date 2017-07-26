@@ -53,7 +53,7 @@ Channel fastmail-inbox
 Channel fastmail
     Master :fastmail-remote:
     Slave :fastmail-local:
-    Patterns * !INBOX !Junk\ Mail
+    Patterns Archive Drafts Sent\ Items SMS
     SyncState *
     Create Both
     Expunge Both
