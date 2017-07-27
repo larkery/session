@@ -90,6 +90,12 @@ def tag_headers(hmap):
 
     return htagger
 
+
+def sync_maildir(m, db):
+    return [md(fn) for fn in m.get_filenames()]
+
+sync_maildir.__name__='sync_maildir()'
+
 def expire(m, db):
     result = []
     for fn in m.get_filenames():
@@ -178,6 +184,7 @@ def manage_inbox(me, folders):
         ('tag:inbox and not tag:sent and not folder:"%(inbox)s"' % folders, remove_tag('inbox')),
         ('from:%s and not tag:sent' % (me,), add_tag('sent')),
         ('folder:"%(inbox)s" AND NOT tag:inbox' % folders, refile_to(folders['archive'])),
+        ('tag:new and folder:"%(sent)s"' % folders, sync_maildir)
     ]
 
     if sleepy_tags:

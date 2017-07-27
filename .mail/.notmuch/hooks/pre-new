@@ -15,23 +15,24 @@ WATCH="$MAIL_DIR/last-sync"
 if [[ -z "$NO_SYNC" ]]; then
     if [[ -n "$FULL" ]] || [[ ! -e "$WATCH" ]] || [[ $(date +%s -r "$WATCH") -lt $(date +%s --date="3 hours ago") ]]
     then
-        echo "delete duplicates"
-        notmuch search --duplicate=2 --output=files --format=text0 from:tom.hinton@cse.org.uk or from:larkery.com | xargs -r -0 rm
-        echo "full sync"
+        echo "check all mail"
+        FULL=1
         # also delete duplicates
         E=$(mbsync -q -a 2>&1)
-        touch "$WATCH"
     else
-        echo sync "$CHANGED"
+        echo check "$CHANGED"
         E=$(mbsync -q $CHANGED 2>&1)
     fi
 fi
 
-if [[ -n "$VERBOSE" ]]; then
-    echo "$E"
-fi
 
 if [ ! "$?" -eq 0 ]
 then
     notify-send -u critical -t 0 "Mail Errors" "$E $CHANGED"
+else
+    [[ -n "$FULL" ]] && touch "$WATCH"
+fi
+
+if [[ -n "$VERBOSE" ]]; then
+    echo "$E"
 fi

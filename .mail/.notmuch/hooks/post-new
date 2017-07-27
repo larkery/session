@@ -1,35 +1,30 @@
 #!/usr/bin/env zsh
 
 NEW=$(notmuch count -- tag:new and not tag:sent)
-echo "classify"
-$MAIL_DIR/.notmuch/hooks/classify classify tag:new
-echo "refile"
-CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-FREQ=$(notmuch search --format=json -- tag:new and not tag:sent |
-           jq '.[] | .tags | .[]' -r |
-           egrep -v '(sent|unread|untrained|attachment|inbox|replied)' |
-           sort |
-           uniq -c)
-SUB=$(notmuch search --format=json -- tag:new and not tag:sent |
-          jq -j '.[0:5]|.[]|.subject+"\n"')
+if [[ $NEW -gt 0 ]]; then
+    echo "classify"
+    $MAIL_DIR/.notmuch/hooks/classify classify tag:new
+    echo "refile"
+    CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-notmuch tag -new -- tag:new
+    SUB=$(notmuch search --format=json -- tag:new and not tag:sent |
+              jq -j '.[0:5]|.[]|.subject+"\n"')
 
-if [ ! "$?" -eq 0 ]
-then
-    echo "ERROR: refiler was not happy"
-fi
+    notmuch tag -new -- tag:new
 
-# if the refiler changed some stuff, we should probably sync again
-if [[ $#CHANGED -gt 1 ]]; then
-    echo "$#CHANGED" "$CHANGED"
-    mbsync -q $CHANGED 2>&1
-fi
+    # if the refiler changed some stuff, we should probably sync again
+    if [[ $#CHANGED -gt 1 ]]; then
+        echo "$#CHANGED" "$CHANGED"
+        mbsync -q $CHANGED 2>&1
+        ## DANGER WILL ROBINSON
+        notmuch new
+    fi
 
-if [ $NEW -ne 0 ]
-then
-    notify "$NEW new mails" "$SUB"
+    if [ $NEW -ne 0 ]
+    then
+        notify "$NEW new mails" "$SUB"
+    fi
 fi
 
 if [ x$DISPLAY != x ]; then
