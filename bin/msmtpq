@@ -483,10 +483,6 @@ send_mail() {    # <-- all mail args ; mail text via TMP
     }
   }
 
-  ## Attempt to store mail on IMAP, and also send it.
-  mbsync cse:Sent\ Items >/dev/null &
-  mbsync fastmail:Sent\ Items >/dev/null &
-
   if $MSMTP "$@" < "${FQP}.mail" > /dev/null ; then      # send mail using queue .mail fil
     log "mail for [ $* ] : send was successful"          # log it
     'rm' -f ${FQP}.*                 # remove all queue mail files .mail & .msmtp file
@@ -496,8 +492,6 @@ send_mail() {    # <-- all mail args ; mail text via TMP
     log "mail for [ $* ] : send was unsuccessful ; msmtp exit code was $?"\
         "enqueued mail as : [ $ID ] ( $* )"    # (queue .mail file is already there)
   fi
-
-  wait
 }
 
 #
