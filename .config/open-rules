@@ -23,5 +23,6 @@ name docx?$
 name xlsx?$
 exec soffice "$1"
 mime text/.+
+scheme org-protocol
 exec emacsclient -c "$1"
 EOF
