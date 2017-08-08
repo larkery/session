@@ -13,7 +13,7 @@ is_active () {
 }
 
 connect () {
-    echo "* cse $(passm -p webmail.cse.org.uk) *" | sudo tee /etc/ppp/chap-secrets >/dev/null
+    echo "* cse $(passm -p webmail.cse.org.uk) *" | tee /etc/ppp/chap-secrets >/dev/null
     systemctl start cse-vpn
 }
 
