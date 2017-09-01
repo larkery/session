@@ -93,10 +93,13 @@ if [[ ! -z $login ]]; then
     url="$(getf $data url)"
     user="$(getf $data user)"
     pass="$(getp $data)"
-    $browser "$url" &
+
+    [[ -n "$url" ]] && $browser "$url" &
+
     export user
     export pass
-    yad --text "$1" '--button=User:sh -c "xdotool type \"$user\""' \
+    yad --text "$1" \
+        '--button=User:sh -c "xdotool type \"$user\""' \
         '--button=Password:sh -c "xdotool type \"$pass\""' \
         '--button=Close:0' --mouse --no-focus
 fi
