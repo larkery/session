@@ -11,6 +11,11 @@ self: super:
                                  srcRepo = true; };
     in emacsNoGTK;
 
+    mplayer = super.mplayer.override {
+      x264Support = true;
+      x264 = self.x264;
+    };
+
     dmenu = super.dmenu.override {
       patches = [ ./patches/dmenu-number-output.patch ];
     };
@@ -30,4 +35,6 @@ self: super:
     grass72 = (super.callPackage ./grass.nix {});
 
     abunchoftags = (super.callPackage ./abunchoftags.nix {});
+
+    onestepback-gtk-theme = (super.callPackage ./onestepback.nix {});
 }
