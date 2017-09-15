@@ -2,9 +2,6 @@
 
 URxvt.font: xft:Monospace:size=12
 
-Xcursor.theme: whiteglass
-Xcursor.size: 16
-
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
 

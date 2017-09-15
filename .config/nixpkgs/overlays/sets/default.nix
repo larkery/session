@@ -29,6 +29,9 @@ self: super:
            Hmisc
            lintr
            rnrfa
+           Hmisc
+           memisc
+           lubridate
         ];
      })];
    };
