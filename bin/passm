@@ -88,18 +88,41 @@ if [[ ! -z $pass ]]; then
 fi
 
 if [[ ! -z $login ]]; then
-    browser="$(getf $data browser)"
-    browser=${browser:-xdg-open}
-    url="$(getf $data url)"
-    user="$(getf $data user)"
-    pass="$(getp $data)"
-
-    [[ -n "$url" ]] && $browser "$url" &
-
-    export user
-    export pass
-    yad --text "$1" \
-        '--button=User:sh -c "xdotool type \"$user\""' \
-        '--button=Password:sh -c "xdotool type \"$pass\""' \
-        '--button=Close:0' --mouse --no-focus
+    # get list of all properties and print them?
+    title="$1"
+    echo "$data" |
+        { local -a arr
+          read -r password
+          if [[ -n $password ]]; then
+              arr+='--field=pass:fbtn'
+              arr+='sh -c "xdotool type \"$password\""'
+              export password
+          fi
+          local _IFS=$IFS
+          IFS=':'
+          browser=xdg-open
+          export browser
+          while read -r key val; do
+              case $key in
+                  browser)
+                      browser=$val
+                      export browser
+                  ;;
+                  url)
+                      arr+='--field=browse:fbtn'
+                      arr+='sh -c "$browser $url"'
+                      url=$val
+                      export url
+                  ;;
+                  *)
+                      arr+='--field='$key:'fbtn'
+                      arr+='sh -c "xdotool type \"$'$key'\""'
+                      eval $key=$val
+                      eval export $key
+              esac
+          done
+          IFS=$_IFS
+          echo $arr
+          yad --form --width 200 --text "$title" $arr '--button=gtk-quit:0' --mouse --no-focus
+        }
 fi
