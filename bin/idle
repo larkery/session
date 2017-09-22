@@ -6,7 +6,7 @@ use Mail::IMAPClient;
 use IO::Socket::SSL;
 
 unless (-t STDIN) {
-    exec "urxvt", "-e", $0;
+    exec "urxvt", "-bg", "darkslategrey", "-e", $0;
 }
 
 open my $mbsync, $ENV{"HOME"} . "/.mbsyncrc" or die $!;
