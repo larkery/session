@@ -16,13 +16,13 @@ self: super:
       x264 = self.x264;
     };
 
-    dmenu = super.dmenu.override {
-      patches = [ ./patches/dmenu-number-output.patch ];
-    };
+    # dmenu = super.dmenu.override {
+    #   patches = [ ./patches/dmenu-number-output.patch ];
+    # };
 
     emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
 
-    pass = super.pass.override {gnupg = self.gnupg21;};
+    pass = super.pass.override {gnupg = self.gnupg;};
 
     xosview = (super.callPackage ./xosview.nix {});
 

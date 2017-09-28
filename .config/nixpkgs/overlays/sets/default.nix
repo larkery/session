@@ -43,7 +43,8 @@ self: super:
 
          notmuch isync msmtp html-tidy xmlstarlet
 
-         gitAndTools.gitFull vcsh
+         gitAndTools.gitFull
+         vcsh
          mr
          pass gnupg
 
