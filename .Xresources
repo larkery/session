@@ -26,13 +26,6 @@ XTerm*on4Clicks: group
 XTerm*visualBell: true
 XTerm*visualBellLine: true
 
-Xft.autohint:  0
-Xft.lcdfilter: lcddefault
-Xft.hintstyle: hintslight
-Xft.hinting:   1
-Xft.antialias: 1
-Xft.rgba:      rgb
-
 Emacs*menubar: 0
 Emacs*verticalScrollBars:0
 Emacs*toolBar:0
