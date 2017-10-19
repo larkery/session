@@ -90,7 +90,7 @@ fi
 if [[ ! -z $login ]]; then
     # get list of all properties and print them?
     title="$1"
-    echo "$data" |
+    echo -E "$data" |
         { local -a arr
           read -r password
           if [[ -n $password ]]; then
