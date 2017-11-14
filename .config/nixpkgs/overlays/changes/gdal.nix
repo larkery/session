@@ -59,6 +59,9 @@ composableDerivation.composableDerivation {} (fixed: rec {
   pushd swig/java
   make install
   popd
+  for entry in $out/lib/*jni*.so; do
+    patchelf --set-rpath "${stdenv.lib.makeLibraryPath buildInputs}" "$entry"
+  done
   '';
 
   preBuild = ''

@@ -11,8 +11,10 @@ self: super:
    themePackages = self.buildEnv {
       name = "theme-packages";
       paths = with self; [
-         theme-vertex vanilla-dmz
-         gtk-engine-murrine
+        theme-vertex
+        numix-gtk-theme
+        vanilla-dmz
+        gtk-engine-murrine
       ];
    };
 

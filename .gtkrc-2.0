@@ -1,4 +1,4 @@
-gtk-theme-name = "OneStepBack"
+gtk-theme-name = "Numix"
 
 style "noscrollbars" {
   GtkScrollbar::slider-width=0
