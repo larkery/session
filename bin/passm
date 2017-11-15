@@ -5,10 +5,10 @@ export DISPLAY=:0
 zparseopts -D c=clip t=type p=pass f+:=field a=auto l=login h=help
 
 local -A shares
-shares[cse-bs3-data]=webmail.cse.org.uk
-shares[cse-bs3-data.cse.org.uk]=webmail.cse.org.uk
-shares[cse-bs3-file]=webmail.cse.org.uk
-shares[cse-bs3-file.cse.org.uk]=webmail.cse.org.uk
+shares[cse-bs3-data]=cse.org.uk
+shares[cse-bs3-data.cse.org.uk]=cse.org.uk
+shares[cse-bs3-file]=cse.org.uk
+shares[cse-bs3-file.cse.org.uk]=cse.org.uk
 
 getf () {
     echo -E -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'

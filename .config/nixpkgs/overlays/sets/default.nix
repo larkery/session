@@ -16,7 +16,14 @@ self: super:
         vanilla-dmz
         gtk-engine-murrine
       ];
-   };
+    };
+
+  rStudioEnv = self.buildEnv {
+    name = "r-studio-environment";
+    paths = [(super.rstudioWrapper.override {
+                packages = with self.rPackages ; [ dplyr tidyr ggplot2 openxlsx ];
+             })];
+  };
 
    rEnvironment = self.buildEnv {
       name = "r-environment";
