@@ -3,8 +3,8 @@
 NEW=$(notmuch count -- tag:new and not tag:sent)
 
 if [[ $NEW -gt 0 ]]; then
-    echo "classify"
-    $MAIL_DIR/.notmuch/hooks/classify classify tag:new
+    # echo "classify"
+    # $MAIL_DIR/.notmuch/hooks/classify classify tag:new
     echo "refile"
     CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
