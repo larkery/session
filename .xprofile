@@ -14,4 +14,4 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 gpg-connect-agent -q updatestartuptty /bye
 
 # fix openoffice/xmonad crud?
-export SAL_USE_VCLPLUGIN=gen
+#export SAL_USE_VCLPLUGIN=gen
