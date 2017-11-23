@@ -1,6 +1,7 @@
 #define FONT Monospace-12
 
 URxvt.font: xft:Monospace:size=12
+URxvt.boldFont: xft:Monospace:size=12:weight=bold
 
 URxvt*urgentOnBell: true
 URxvt*saveLines: 5000
