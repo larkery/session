@@ -3,7 +3,7 @@
     allow_markup = yes
     sort = yes
     indicate_hidden = yes
-    alignment = right
+    alignment = left
     browser = xdg-open
     word_wrap = no
     show_age_threshold = 120
@@ -11,11 +11,11 @@
     idle_threshold = 240
     show_indicators = yes
     separator_height = 0
-    padding = 3
+    padding = 2
     horizontal_padding = 8
     format = "<b>%s</b>\n%b\n%p"
     follow = mouse
-    geometry=0x300-20+20
+    geometry=0x0-4+24
 
 [frame]
     width = 1
@@ -28,15 +28,18 @@
 
 [urgency_low]
     timeout = 4
-    foreground="#ffffff"
-    background="#000000"
+    foreground="#777777"
+    background="#DCDCDC"
+    frame_color = "#888888"
 
 [urgency_normal]
     timeout = 4
-    foreground="#DCDCCC"
-    background="#2f4f4f"
+    foreground="#000000"
+    background="#DCDCCC"
+    frame_color = "#2f4f4f"
 
 [urgency_critical]
     timeout = 0
-    foreground="#ffffff"
-    background="#550000"
+    foreground="#000000"
+    background="#DCDCCC"
+    frame_color = "#ff5555"
