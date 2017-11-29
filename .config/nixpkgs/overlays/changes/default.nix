@@ -24,11 +24,7 @@ self: super:
 
     pass = super.pass.override {gnupg = self.gnupg;};
 
-    xosview = (super.callPackage ./xosview.nix {});
-
     ripright = (super.callPackage ./ripright.nix {});
-
-    st-xresources = (super.callPackage ./st-xresources.nix {});
 
     gdal = (super.callPackage ./gdal.nix {});
 
@@ -36,5 +32,5 @@ self: super:
 
     abunchoftags = (super.callPackage ./abunchoftags.nix {});
 
-    onestepback-gtk-theme = (super.callPackage ./onestepback.nix {});
+#  pulseaudio-dlna = (super.callPackage ./pulseaudio-dlna.nix {});
 }

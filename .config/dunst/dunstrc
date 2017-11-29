@@ -15,7 +15,7 @@
     horizontal_padding = 8
     format = "<b>%s</b>\n%b\n%p"
     follow = mouse
-    geometry=0x0-4+24
+    geometry=0x0-4+4
 
 [frame]
     width = 1
