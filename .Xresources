@@ -40,4 +40,8 @@ xclock*Background:black
 xclock*analog: true
 xclock*update: 1
 
+Xcursor.theme: Vanilla-DMZ-AA
+!capitaine-cursors
+Xcursor.size: 32
+
 #include ".Xresources_emacs"

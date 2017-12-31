@@ -8,5 +8,6 @@ stdenv.mkDerivation rec {
       sha256 = "1dvnggjsfp5gc0smqcgbvq3zn2h81aqm8ydg9giw2sdq61q9p1hm";
    };
 
-   buildInputs = [pkgconfig flac curl cdparanoia imagemagick libdiscid libcddb automake autoconf];
+  buildInputs = [pkgconfig flac curl cdparanoia imagemagick libdiscid libcddb automake autoconf];
+  patches = [./ripright.patch];
 }

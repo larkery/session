@@ -8,11 +8,11 @@ scheme mailto
 exec emacsclient -c -e "(browse-url-mail \"$1\")"
 scheme http
 scheme https
-exec firefox "$1"
+exec ff-new-window "$1"
 mime text/html
 name htm$
 name html$
-exec firefox "file:///$1"
+exec ff-new-window "file:///$1"
 mime image/.+
 exec feh "$1"
 test [ -d "$1/.git" ]
@@ -25,4 +25,6 @@ exec soffice "$1"
 mime text/.+
 scheme org-protocol
 exec emacsclient -c "$1"
+mime audio/.+
+exec audacity "$1"
 EOF

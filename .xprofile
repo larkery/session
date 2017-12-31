@@ -2,8 +2,9 @@ source ~/.profile
 
 redshift -l 51.455313:-2.591902 &
 dunst &
-xss-lock lock &
+
 xsetroot -solid black -cursor_name left_ptr
+hsetroot -add '#dddddd' -add '#000000' -gradient 0
 
 setxkbmap &
 
@@ -15,3 +16,6 @@ gpg-connect-agent -q updatestartuptty /bye
 
 # fix openoffice/xmonad crud?
 #export SAL_USE_VCLPLUGIN=gen
+
+#HACK HACK HACK
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$(nix-build '<nixpkgs>' -A xorg.libXcursor --no-out-link)/lib"
