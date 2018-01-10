@@ -18,7 +18,6 @@ in emacsNoGTK;
     x264 = self.x264;
   };
 
-  capitaine-cursor-theme = (super.callPackage ./capitaine-cursor-theme.nix {});
 
   emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
 

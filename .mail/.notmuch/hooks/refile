@@ -102,7 +102,7 @@ def expire(m, db):
         headers = Parser().parse(open(fn, 'r'))
         d = time.mktime(parsedate(headers['Expires']))
         if d < time.time():
-            m.remove_tag(expires)
+            m.remove_tag("expires")
             m.add_tag("expired")
 
     return result
