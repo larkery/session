@@ -1,0 +1,12 @@
+#!/bin/sh
+
+WINDOW=$(xdotool search --onlyvisible --maxdepth 1 --class Firefox)
+
+if [ -z "$WINDOW" ]
+then
+  firefox "$@"
+else
+  xdotool windowactivate $WINDOW
+  firefox --new-tab "$@"
+fi
+
