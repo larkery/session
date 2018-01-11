@@ -6,7 +6,7 @@ self: super:
     paths = with self; [
       gtk-engine-murrine
       zuki-themes
-
+      vanilla-dmz
       emacs emacs-pdf-tools graphviz aspell aspellDicts.en w3m
 
       notmuch isync msmtp html-tidy xmlstarlet
