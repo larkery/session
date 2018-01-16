@@ -36,6 +36,7 @@ self: super:
       libnotify dunst
 
       polybar
+      pinentry
     ];
   };
 
