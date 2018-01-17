@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile $VERBOSE)}")
+CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 CHANGED+=(fastmail-inbox)
 CHANGED+=(cse:Inbox)
 typeset -U CHANGED
@@ -28,7 +28,8 @@ fi
 
 if [ ! "$?" -eq 0 ]
 then
-    notify-send -u critical -t 0 "Mail Errors" "$E $CHANGED"
+    echo "$E" >&2
+    notify-send -u critical -t 0 "Mail Errors"
 else
     [[ -n "$FULL" ]] && touch "$WATCH"
 fi

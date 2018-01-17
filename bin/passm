@@ -1,7 +1,5 @@
 #!/usr/bin/env zsh
 
-export DISPLAY=:0
-
 zparseopts -D c=clip t=type p=pass f+:=field a=auto l=login h=help
 
 local -A shares
