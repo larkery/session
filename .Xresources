@@ -35,8 +35,6 @@ Emacs*FontBackend: xft
 Emacs*font: FONT
 
 xclock*geometry: 100x100-10+10
-xclock*Foreground:white
-xclock*Background:black
 xclock*analog: true
 xclock*update: 1
 
