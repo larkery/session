@@ -1,45 +1,78 @@
 [global]
-    font = Sans 10
+    font = Sans 12
     allow_markup = yes
+
+    format = "<b>%s</b>\n%b %p"
     sort = yes
     indicate_hidden = yes
-    alignment = left
-    browser = xdg-open
-    word_wrap = no
-    show_age_threshold = 120
-    shrink = no
-    idle_threshold = 240
-    show_indicators = yes
-    separator_height = 0
-    padding = 2
-    horizontal_padding = 8
-    format = "<b>%s</b>\n%b\n%p"
+    alignment = right
+
+    bounce_freq = 0
+    show_age_threshold = 60
+    word_wrap = yes
+    ignore_newline = no
+
+    #   [{width}]x{height}[+/-{x}+/-{y}]
+    geometry = "600x5-4+4"
+
+    shrink = yes
+
+    transparency = 0
+
+    idle_threshold = 120
+
     follow = mouse
-    geometry=0x0-4+4
+
+    sticky_history = yes
+
+    history_length = 20
+
+    show_indicators = yes
+
+    line_height = 0
+
+    separator_height = 2
+
+    padding = 2
+
+    horizontal_padding = 6
+
+    separator_color = frame
+
+    startup_notification = false
+
+    # dmenu path.
+    dmenu = /usr/bin/dmenu -p dunst:
+
+    # Browser for opening urls in context menu.
+    browser = browser
+
+    icon_position = left
+    icon_folders = ~/.icons/
 
 [frame]
-    width = 1
+    width = 2
+    color = "#ffffff"
 
 [shortcuts]
+    # Close notification.
     close = ctrl+space
+    # Close all notifications.
     close_all = ctrl+shift+space
     history = ctrl+grave
-    context = ctrl+shift+period
 
 [urgency_low]
-    timeout = 4
-    foreground="#777777"
-    background="#DCDCDC"
-    frame_color = "#888888"
+    background = "#26282B"
+    foreground = "#CECFD1"
+    timeout = 5
 
 [urgency_normal]
-    timeout = 4
-    foreground="#000000"
-    background="#DCDCCC"
-    frame_color = "#2f4f4f"
+    background = "#00688b"
+    foreground = "#ffffff"
+    timeout = 5
 
 [urgency_critical]
+    background = "#26282B"
+    foreground = "#CECFD1"
+    frame_color = "#ff0000"
     timeout = 0
-    foreground="#000000"
-    background="#DCDCCC"
-    frame_color = "#ff5555"
