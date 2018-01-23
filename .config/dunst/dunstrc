@@ -52,7 +52,7 @@
 
 [frame]
     width = 2
-    color = "#ffffff"
+    color = "#00688b"
 
 [shortcuts]
     # Close notification.
@@ -62,17 +62,17 @@
     history = ctrl+grave
 
 [urgency_low]
-    background = "#26282B"
-    foreground = "#CECFD1"
+    background = "#fafafa"
+    foreground = "#555555"
     timeout = 5
 
 [urgency_normal]
-    background = "#00688b"
-    foreground = "#ffffff"
+    background = "#fafafa"
+    foreground = "#000000"
     timeout = 5
 
 [urgency_critical]
     background = "#26282B"
-    foreground = "#CECFD1"
+    foreground = "#ffffff"
     frame_color = "#ff0000"
     timeout = 0
