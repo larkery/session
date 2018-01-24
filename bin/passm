@@ -2,12 +2,6 @@
 
 zparseopts -D c=clip t=type p=pass f+:=field a=auto l=login h=help
 
-local -A shares
-shares[cse-bs3-data]=cse.org.uk
-shares[cse-bs3-data.cse.org.uk]=cse.org.uk
-shares[cse-bs3-file]=cse.org.uk
-shares[cse-bs3-file.cse.org.uk]=cse.org.uk
-
 getf () {
     echo -E -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
 }
@@ -17,36 +11,34 @@ getp () {
 }
 
 if [[ ! -z $help ]]; then
-    echo "usage: $0 [-c] [-t] [-p] [-f field] [-l] [-a host share]"
-    echo "	-c copy fields to clipboard"
-    echo "	-t type fields in with xdotool"
-    echo "	-p operate on password"
-    echo "	-f <field> operate on <field>"
+    echo "usage: $0 [-c] [-t] [-p] [-f field] [-l] [-a]"
+    echo "  -c copy fields to clipboard"
+    echo "  -t type fields in with xdotool"
+    echo "  -p operate on password"
+    echo "  -f <field> operate on <field>"
     echo "  -a produce a smb credentials file"
-    echo "	-l do a login"
+    echo "  -l do a login"
     exit 0
 fi
 
 if [[ ! -z $auto ]]; then
-    host=$1
-    share=$2
+    logger "Echoing passwords"
+    entry="$1"
+    tgt="${2:--}"
     data=""
     E="1"
-    if (( ${+shares[$host/$share]} )); then
-        data=$(pass show $shares[$host/$share])
-        E=$?
-    elif (( ${+shares[$host]} )); then
-        data=$(pass show $shares[$host])
-        E=$?
-    fi
+    data=$(pass show "$entry")
+    E=$?
+
     if [[ $E -ne 0 ]]; then
-        notify -u critical "network mount" "$host/$share - returned $E"
+        notify -u critical "network mount" "$entry - returned $E"
         exit 1
     else
-        notify "network mount" "$host/$share"
+        notify "network mount" "$entry"
     fi
 
     if [[ ! -z $data ]]; then
+        logger "Writing credentials for $entry"
         username=$(getf "$data" "smb-username")
         : ${username:=$(getf "$data" "username")}
         domain=$(getf "$data" "smb-domain")
@@ -55,7 +47,13 @@ if [[ ! -z $auto ]]; then
         [[ ! -z "$username" ]] && out="username=${username}"
         [[ ! -z "$password" ]] && out="$out\npassword=${password}"
         [[ ! -z "$domain" ]] && out="$out\ndomain=${domain}"
-        echo "$out"
+        if [ -f "$tgt" ]; then
+            echo "$out" > "$tgt"
+            logger "Delete $tgt in 5..."
+            systemd-run --on-active 10 -- rm -f -- "$tgt"
+        else
+            echo "$out"
+        fi
     fi
 
     exit 0
