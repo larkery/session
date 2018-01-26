@@ -1,124 +1,127 @@
-#!/usr/bin/env zsh
+#!/run/current-system/sw/bin/perl
 
-zparseopts -D c=clip t=type p=pass f+:=field a=auto l=login h=help
+use strict;
+use warnings;
+use v5.24;
 
-getf () {
-    echo -E -n "$1" | sed -ne 's/^'"$2"':\(.\+\)/\1/p'
+use Getopt::Long;
+use Pod::Usage;
+
+my @fields = ();
+my $do_copy;
+my $do_print;
+my $credentials;
+my $do_open;
+my $help;
+
+GetOptions(
+    "copy" => \$do_copy,
+    "print" => \$do_print,
+    "credentials-file=s" => \$credentials,
+    "open" => \$do_open,
+    "field=s" => \@fields,
+    "help|?" => \$help
+    ) or pod2usage(2);
+
+pod2usage(1) if $help;
+
+my $entry = $ARGV[0];
+
+exit unless $entry;
+
+push @fields, "password" unless scalar @fields;
+
+my ($password, @data) = `pass show "$entry"` or die('error from invoking pass');
+
+chomp $password;
+
+my $notes = "";
+my %fieldvals = ();
+
+$fieldvals{'password'} = $password;
+
+for my $datum (@data) {
+    chomp $datum;
+    if ($datum =~ /([^:]+):(.+)/) {
+        $fieldvals{$1} = $2;
+    } else {
+        $notes = $notes . $datum . "\n";
+    }
 }
 
-getp () {
-    echo -E -n "$1" | head -n 1
-}
-
-if [[ ! -z $help ]]; then
-    echo "usage: $0 [-c] [-t] [-p] [-f field] [-l] [-a]"
-    echo "  -c copy fields to clipboard"
-    echo "  -t type fields in with xdotool"
-    echo "  -p operate on password"
-    echo "  -f <field> operate on <field>"
-    echo "  -a produce a smb credentials file"
-    echo "  -l do a login"
-    exit 0
-fi
-
-if [[ ! -z $auto ]]; then
-    logger "Echoing passwords"
-    entry="$1"
-    tgt="${2:--}"
-    data=""
-    E="1"
-    data=$(pass show "$entry")
-    E=$?
-
-    if [[ $E -ne 0 ]]; then
-        notify -u critical "network mount" "$entry - returned $E"
-        exit 1
-    else
-        notify "network mount" "$entry"
-    fi
-
-    if [[ ! -z $data ]]; then
-        logger "Writing credentials for $entry"
-        username=$(getf "$data" "smb-username")
-        : ${username:=$(getf "$data" "username")}
-        domain=$(getf "$data" "smb-domain")
-        password=$(getp "$data")
-        out=""
-        [[ ! -z "$username" ]] && out="username=${username}"
-        [[ ! -z "$password" ]] && out="$out\npassword=${password}"
-        [[ ! -z "$domain" ]] && out="$out\ndomain=${domain}"
-        if [ -f "$tgt" ]; then
-            echo "$out" > "$tgt"
-            logger "Delete $tgt in 5..."
-            systemd-run --on-active 10 -- rm -f -- "$tgt"
-        else
-            echo "$out"
-        fi
-    fi
-
-    exit 0
-fi
-
-data=$(pass show "$1")
-out=""
-
-proc() {
-    if [[ ! -z $clip ]]; then
-        notify-send "copied $2"
-        echo -E -n "$1" | xclip -quiet -l 1 -selection primary
-    elif [[ ! -z $type ]]; then
-        # TODO: password revealed in args
-        xdotool type "$1"
-    else
-        echo -E -n "$1"
-    fi
-}
-
-field=("${(@)field:#-f}")
-for f in ${field}; do
-    proc "$(getf $data $f)" $f
-done
-
-if [[ ! -z $pass ]]; then
-    proc "$(getp $data)" "password"
-fi
-
-if [[ ! -z $login ]]; then
-    # get list of all properties and print them?
-    title="$1"
-    echo -E "$data" |
-        { local -a arr
-          read -r password
-          if [[ -n $password ]]; then
-              arr+='--field=pass:fbtn'
-              arr+='sh -c "xdotool type \"$password\""'
-              export password
-          fi
-          local _IFS=$IFS
-          IFS=':'
-          browser=xdg-open
-          export browser
-          while read -r key val; do
-              case $key in
-                  browser)
-                      browser=$val
-                      export browser
-                  ;;
-                  url)
-                      arr+='--field=browse:fbtn'
-                      arr+='sh -c "$browser $url"'
-                      url=$val
-                      export url
-                  ;;
-                  *)
-                      arr+='--field='$key:'fbtn'
-                      arr+='sh -c "xdotool type \"$'$key'\""'
-                      eval $key=$val
-                      eval export $key
-              esac
-          done
-          IFS=$_IFS
-          echo $arr
-          yad --form --width 200 --text "$title" $arr '--button=gtk-quit:0' --mouse --no-focus
+for my $field (@fields) {
+    my $value = $fieldvals{$field};
+    if ($value) {
+        say $value if $do_print;
+        # copy to clipboard
+        if ($do_copy) {
+            system 'notify-send', $entry, "copied $field";
+            open(my $xclip, "| xclip -quiet -l 1 -selection primary");
+            print $xclip $value;
+            close($xclip);
         }
-fi
+    }
+}
+
+if ($credentials) {
+    open(my $fh, '>', $credentials);
+    my $un = $fieldvals{'smb-username'} || $fieldvals{'username'} || $fieldvals{'user'};
+    print $fh "username=" . $un . "\n" if $un;
+    print $fh "domain=" . $fieldvals{'smb-domain'} . "\n" if $fieldvals{'smb-domain'};
+    print $fh "password=" . $fieldvals{'password'} . "\n" if $fieldvals{'password'};
+    close($fh);
+    # we need to kill the file later
+    my $pid;
+    open STDIN, '/dev/null';
+    open STDOUT, '>>/dev/null';
+    open STDERR, '>>/dev/null';
+    unless ($pid = fork) {
+        unless (fork) {
+            sleep 5;
+            unlink $credentials;
+            exit 0;
+        }
+        exit 0;
+    }
+    waitpid($pid, 0);
+}
+
+if ($do_open) {
+    sub xtype {
+        my $text = shift;
+        open(my $fh, "|xdotool -");
+        print $fh "type $text";
+        close $fh;
+    }
+
+    my $cmd = "yad --width 200 --title='pass: $entry' --text '$entry: $notes' --form ";
+    for my $field (keys %fieldvals) {
+        $cmd = $cmd .
+            "--field='$field:fbtn' \"echo '$field'\" ";
+    }
+
+    open(my $yad, "$cmd --button=gtk-cancel:0 --mouse --no-focus |");
+    while (<$yad>) {
+        chomp;
+        if ($_ eq "url") {
+            my $url = $fieldvals{$_};
+
+            unless ($url =~ /:/) {
+                $url = "http://$url";
+            }
+
+            system "xdg-open", ($url)
+        } else {
+            xtype $fieldvals{$_} if $fieldvals{$_};
+        }
+    }
+}
+
+__END__
+=head1 NAME
+
+passm - a pass wrapper
+
+=head1 SYNOPSIS
+
+passm [--copy] [--print] [--open] [--field x]* [--credentials-file <path>] entry-name
