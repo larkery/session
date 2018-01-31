@@ -94,13 +94,18 @@ if ($do_open) {
         close $fh;
     }
 
-    my $cmd = "yad --width 200 --title='pass: $entry' --text '$entry: $notes' --form ";
+    my @args = ("yad", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form");
+
     for my $field (keys %fieldvals) {
-        $cmd = $cmd .
-            "--field='$field:fbtn' \"echo '$field'\" ";
+        push @args, "--field=$field:fbtn";
+        push @args, "echo '$field'";
     }
 
-    open(my $yad, "$cmd --button=gtk-cancel:0 --mouse --no-focus |");
+    push @args, "--button=gtk-cancel:0";
+    push @args, "--mouse";
+    push @args, "--no-focus";
+
+    open(my $yad, '-|', @args);
     while (<$yad>) {
         chomp;
         if ($_ eq "url") {
