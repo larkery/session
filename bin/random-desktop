@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 T=$(mktemp -d)
 N=0
@@ -8,7 +8,7 @@ xrandr | grep '*' | awk -F'x| +' '{print $2 " " $3}' |
     {
     while read width height; do
         FI="$T/$N.jpg"
-        curl -L https://picsum.photos/$width/$height?random > $FI
+        curl -L "https://picsum.photos/$width/$height?random" > $FI
         N=$((N + 1))
         IMGS+=($FI)
     done
