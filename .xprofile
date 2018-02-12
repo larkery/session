@@ -1,5 +1,20 @@
 source ~/.profile
 
+compton --shadow \
+        --shadow-exclude '!(focused || window_type *= "menu")' \
+        --no-dock-shadow \
+        -r 8 -l -8 -t -8 \
+        --use-ewmh-active-win \
+        --backend glx \
+        --glx-no-stencil \
+        --glx-no-rebind-pixmap \
+        --glx-swap-method -1 \
+        --refresh-rate 0 \
+        --vsync opengl-swc \
+        --paint-on-overlay \
+        --glx-reinit-on-root-change &
+
+pkill redshift
 redshift -l 51.455313:-2.591902 &
 dunst &
 xss-lock gpg-connect-agent reloadagent /bye &
