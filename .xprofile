@@ -1,38 +1,17 @@
 source ~/.profile
 
-compton --shadow \
-        --shadow-exclude '!(focused || window_type *= "menu")' \
-        --no-dock-shadow \
-        -r 8 -l -8 -t -8 \
-        --use-ewmh-active-win \
-        --backend glx \
-        --glx-no-stencil \
-        --glx-no-rebind-pixmap \
-        --glx-swap-method -1 \
-        --refresh-rate 0 \
-        --vsync opengl-swc \
-        --paint-on-overlay \
-        --glx-reinit-on-root-change &
+export __GL_SYNC_TO_VBLANK=1
+export _JAVA_AWT_WM_NONREPARENTING=1
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$(nix-build '<nixpkgs>' -A xorg.libXcursor --no-out-link)/lib"
 
+echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
+
+gpg-connect-agent -q updatestartuptty /bye
+
+compton -b
 pkill redshift
 redshift -l 51.455313:-2.591902 &
 dunst &
 xss-lock gpg-connect-agent reloadagent /bye &
-
-xsetroot -solid black -cursor_name left_ptr
-hsetroot -add '#dddddd' -add '#000000' -gradient 0
-
+random-desktop &
 setxkbmap &
-
-echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
-
-export _JAVA_AWT_WM_NONREPARENTING=1
-
-gpg-connect-agent -q updatestartuptty /bye
-
-# fix openoffice/xmonad crud?
-#export SAL_USE_VCLPLUGIN=gen
-
-#HACK HACK HACK
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$(nix-build '<nixpkgs>' -A xorg.libXcursor --no-out-link)/lib"
-
