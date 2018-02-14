@@ -33,7 +33,7 @@ self: super:
 
   ripright = (super.callPackage ./ripright.nix {});
 
-  gdal = (super.callPackage ./gdal.nix {});
+#  gdal = (super.callPackage ./gdal.nix {});
 
   grass72 = (super.callPackage ./grass.nix {});
 

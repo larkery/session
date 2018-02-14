@@ -12,10 +12,11 @@
     word_wrap = yes
     ignore_newline = no
 
-    frame_width = 1
+    transparency = 10
+    frame_width = 0
 
     #   [{width}]x{height}[+/-{x}+/-{y}]
-    geometry = "300x24-8-32"
+    geometry = "300x24-8+8"
 
     shrink = no
 
@@ -64,13 +65,11 @@
     background = "#666666"
     foreground = "#eaeaea"
     timeout = 5
-    transparency = 50
 
 [urgency_normal]
     background = "#555555"
     foreground = "#fafafa"
     timeout = 5
-    transparency = 20
 
 [urgency_critical]
     background = "#553333"
