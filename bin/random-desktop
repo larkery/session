@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 
+xsetroot -cursor_name left_ptr
+
 T=$(mktemp -d)
 N=0
 IMGS=()

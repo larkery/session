@@ -6,12 +6,20 @@ export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$(nix-build '<nixpkgs>' -A xorg.libXc
 
 echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
-gpg-connect-agent -q updatestartuptty /bye
+{
+    gpg-connect-agent -q updatestartuptty /bye
+    xss-lock gpg-connect-agent reloadagent /bye &
+} &
 
-compton -b
-pkill redshift
-redshift -l 51.455313:-2.591902 &
+{
+    random-desktop >/dev/null 2>&1
+    compton -b
+} &
+
+{
+    pkill redshift
+    redshift -l 51.455313:-2.591902
+} &
+
 dunst &
-xss-lock gpg-connect-agent reloadagent /bye &
-random-desktop &
 setxkbmap &
