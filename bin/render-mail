@@ -1,21 +1,8 @@
 #!/bin/sh
-ENCODING_OPTION=""
-case "$1" in
-    windows-1252)
-        ENCODING_OPTION="--input-encoding win1252"
-        ;;
-    us-ascii|iso-8859-1)
-        ENCODING_OPTION="--input-encoding ascii"
-        ;;
-    utf-8)
-        ENCODING_OPTION="--input-encoding utf8"
-        ;;
-    *)
-        echo "Unknown encoding: $1"
-esac
 # email tidying up process for render in emacs.
 # continuing the endless struggle against outlook, the worst email program
-tidy -q -config ~/.config/html-tidy/tidy.conf ${ENCODING_OPTION} |
+iconv -f "$1" -t "UTF-8" |
+    tidy -q -config ~/.config/html-tidy/tidy.conf --input-encoding utf8 |
     # could use mojolicious to remove garbage and add > for divs with left line
     w3m -cols "$2" -o display_charset=UTF-8 \
         -o ext_halfdump=1 -o pre_conv=1 -halfdump -T text/html |
