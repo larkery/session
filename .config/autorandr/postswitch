@@ -1,4 +1,3 @@
 #!/bin/sh
 
-pkill polybar
-polybar -c ~/.xmonad/polybar-config example
+random-desktop &
