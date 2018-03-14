@@ -16,9 +16,10 @@ self: super:
     x264 = self.x264;
   };
 
-  compton = super.compton.overrideAttrs
+  compton-custom = super.compton.overrideAttrs
     (_ :
     {
+      name = "compton-custom";
       src =
         super.fetchgit {
         url = "https://github.com/larkery/compton.git";
