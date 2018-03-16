@@ -6,6 +6,9 @@ use v5.24;
 
 use Getopt::Long;
 use Pod::Usage;
+use IPC::Open2;
+use File::Find;
+use File::Spec;
 
 my @fields = ();
 my $do_copy;
@@ -25,7 +28,46 @@ GetOptions(
 
 pod2usage(1) if $help;
 
+$do_open = $do_open ||
+    !($do_copy || $do_print || $credentials || $help);
+
+sub ask_for_entry {
+    my $yad_pid = open2(
+        my $yad_out, my $yad_in,
+        "yad",
+        "--list",
+        "--column", "entry",
+        "--search-column=1",
+        "--print-column=1",
+        "--width=400",
+        "--height=400",
+        "--mouse",
+        "--regex-search");
+    my $store = $ENV{"HOME"} . "/.password-store";
+    find(
+        sub {
+            $File::Find::prune = 1 if /^\.git/;
+            my $dir = File::Spec->abs2rel($File::Find::dir, $store);
+            if ($dir eq ".") {
+                $dir = "";
+            } else {
+                $dir = $dir . "/";
+            }
+            if (/\.gpg$/) {
+                s/\.gpg$//;
+                print $yad_in "$dir$_\n";
+            }
+        },
+        $store);
+    flush $yad_out;
+    my $result = <$yad_out>;
+    waitpid($yad_pid, 0);
+    $result =~ s/\|\n//;
+    return $result;
+}
+
 my $entry = $ARGV[0];
+$entry = ask_for_entry() unless $entry;
 
 exit unless $entry;
 
@@ -89,12 +131,12 @@ if ($credentials) {
 if ($do_open) {
     sub xtype {
         my $text = shift;
-        open(my $fh, "|xdotool -");
-        print $fh "type $text";
+        open(my $fh, "|-:encoding(utf-8)", "xdotool", "-");
+        print $fh "type $text\n";
         close $fh;
     }
 
-    my @args = ("yad", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form");
+    my @args = ("yad", "--class", "password-input", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form");
 
     for my $field (keys %fieldvals) {
         push @args, "--field=$field:fbtn";
@@ -103,9 +145,10 @@ if ($do_open) {
 
     push @args, "--button=gtk-cancel:0";
     push @args, "--mouse";
+    push @args, "--on-top";
     push @args, "--no-focus";
 
-    open(my $yad, '-|', @args);
+    open(my $yad, '-|:encoding(utf-8)', @args);
     while (<$yad>) {
         chomp;
         if ($_ eq "url") {
@@ -117,7 +160,8 @@ if ($do_open) {
 
             system "xdg-open", ($url)
         } else {
-            xtype $fieldvals{$_} if $fieldvals{$_};
+            print "$fieldvals{$_}\n";
+            #xtype $fieldvals{$_} if $fieldvals{$_};
         }
     }
 }

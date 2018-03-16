@@ -5,8 +5,8 @@ checkout = git clone 'ssh://git@github.com/larkery/emacs.git' '.emacs.d'
 [$HOME/.xmonad]
 checkout = git clone 'ssh://git@github.com/larkery/xmonad.git' '.xmonad'
 
-[$HOME/notes]
-checkout = git clone 'ssh://larkery.com/home/hinton/repos/notes' 'notes'
+[$HOME/.config/awesome]
+checkout = git clone 'ssh://git@github.com/larkery/awesome.git' 'awesome'
 
 [$HOME/.password-store]
 checkout = git clone 'ssh://larkery.com:/home/hinton/repos/pass' '.password-store'

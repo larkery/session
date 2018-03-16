@@ -11,15 +11,11 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
     xss-lock gpg-connect-agent reloadagent /bye &
 } &
 
-{
-    random-desktop >/dev/null 2>&1
-    compton -b
-} &
+compton -b
 
 {
     pkill redshift
     redshift -l 51.455313:-2.591902
 } &
 
-dunst &
 setxkbmap &
