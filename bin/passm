@@ -160,8 +160,7 @@ if ($do_open) {
 
             system "xdg-open", ($url)
         } else {
-            print "$fieldvals{$_}\n";
-            #xtype $fieldvals{$_} if $fieldvals{$_};
+            xtype $fieldvals{$_} if $fieldvals{$_};
         }
     }
 }
