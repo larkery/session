@@ -1,0 +1,5 @@
+#!/bin/sh
+
+(flock -n 9 || exit 1
+  echo "$(date +%s) $*" >> ~/.local/tracker.db
+) 9> ~/.local/tracker.lock
