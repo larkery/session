@@ -1,34 +1,101 @@
-#!/run/current-system/sw/bin/perl
+#!/usr/bin/env boot
 
-use strict;
-use warnings;
-use v5.24;
-use POSIX qw( strftime );
+(require '[clojure.java.io :as io]
+         '[clojure.set :as set])
 
-open(my $log, "<", "$ENV{HOME}/.local/tracker.db")
-    or die "Can't open trackerdb";
+(defn sub [x y]
+  (let [x (.toLowerCase x)]
+    #(when (.contains (.toLowerCase %) x) [y])))
 
-my %start = ();
-my %state = ();
-my %blocks = ();
+(defn pcode [x]
+  (let [c
+        (-> (re-seq #"p/(\d{3})" x)
+            first
+            rest
+            first)
+        ]
+    (when c [(keyword c)])))
 
-while (<$log>) {
-    chomp;
-    if (/^([0-9]+) (\w+) ?(.+)$/) {
-        my $time = $1;
-        my $event = $2;
-        my $msg = $3;
-        my $last_time = $start{$event};
-        if ($last_time) {
-            my $last_state = $state{$event};
-            my $delta = $time - $last_time;
+(defn tcode [x]
+  (let [c
+        (-> (re-seq #"Ticket #(\d+)" x)
+            first
+            rest
+            first)
+        ]
+    (when c [(keyword (str "ticket-" c))]))
+  )
 
-            my $block = strftime("W%W %a %e %b %H",
-                                 localtime($last_time));
+(def rules
+  [
+   (sub "nhm" :nhm)
+   (sub "ccc" :ccc)
+   (sub "firefox" :web)
+   (sub "thermos" :thermos)
+   (sub "roger" :roger)
+   (sub "notmuch" :email)
+   (sub "nhm helpdesk" :support)
+   (sub "national household model" :nhm)
+   (sub "osticket" :support)
+   pcode
+   tcode
+   ]
+  )
 
-            # chop up the msg
-        }
-        $state{$event} = $msg;
-        $start{$event} = $time;
-    }
-}
+(defn dissect [msg]
+  (->> (mapcat #(% msg) rules)
+       (filter identity)
+       set))
+
+(let [df (java.text.SimpleDateFormat. "MMM dd EEE")]
+
+    (defn quantize [time]
+      (let [d (java.util.Date. ^Long (* 1000 time))]
+        (.format df d))))
+
+(defn summary []
+  (with-open [r (io/reader (str (System/getProperty "user.home")
+                                "/.local/tracker.db"))]
+    (doall (reduce
+            (fn [sum [time type msg]]
+              (let [new-set (dissect msg)
+                    time (Long/parseLong time)
+                    block (quantize time)]
+                (update-in sum [block type]
+                           (fn [block]
+                             (let [timers (:states block)
+                                   old-set (set (keys timers))
+
+                                   entered (set/difference new-set old-set)
+                                   exited (set/difference old-set new-set)]
+
+                               (reduce
+                                (fn [block tag]
+                                  (if (entered tag)
+                                    (assoc-in block [:states tag] time)
+                                    (update
+                                     (update-in block [:totals tag]
+                                                #(+ (or % 0) (- time (get-in block [:states tag]))))
+                                     :states dissoc tag)))
+                                block
+                                (set/union entered exited)
+                                )
+
+                               )))))
+            {}
+            (map (comp rest first #(re-seq #"^(\d+) ([^ ]+) ?(.+)$" %))
+                 (line-seq r))
+            ))))
+
+(defn -main [& args]
+  (let [s (summary)]
+    (doseq [[k0 s] s]
+      (doseq [[k v] s]
+        (when-not (empty? v)
+          (printf "%s %s\n" k0 k)
+          (doseq [[tag dur]
+                  (filter
+                   #(> (second %) 60)
+                   (reverse (sort-by second (:totals v))))]
+            (printf "           %s %.2f\n" tag (double (/ dur 3600))))
+          )))))
