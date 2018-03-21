@@ -8,7 +8,7 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
 {
     gpg-connect-agent -q updatestartuptty /bye
-    xss-lock gpg-connect-agent reloadagent /bye &
+    xss-lock lock-screen &
 } &
 
 compton -b

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+track screen off
+trap "track screen on" SIGTERM SIGINT
+gpg-connect-agent reloadagent /bye
+
+(while :
+ do
+  sleep 20
+ done) &
+
+wait
