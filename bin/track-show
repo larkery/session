@@ -35,8 +35,10 @@
    (sub "roger" :roger)
    (sub "notmuch" :email)
    (sub "nhm helpdesk" :support)
-   (sub "national household model" :nhm)
+   (sub "national household model" :in-nhm)
    (sub "osticket" :support)
+   (sub "sap-steps" :sap-steps)
+   #(when (= % "mail") #{:mail})
    pcode
    tcode
    ]
