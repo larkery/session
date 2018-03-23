@@ -39,6 +39,8 @@
    (sub "osticket" :support)
    (sub "sap-steps" :sap-steps)
    #(when (= % "mail") #{:mail})
+   (sub "heat-profiles" :heat-profiles)
+   (sub "ting" :ting)
    pcode
    tcode
    ]
