@@ -72,6 +72,7 @@ self: super:
         Hmisc
         memisc
         lubridate
+        hexbin
       ];
     })];
   };

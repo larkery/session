@@ -1,7 +1,6 @@
 #!/bin/sh
 
 gpg-connect-agent reloadagent /bye
-sleep infinity & SLEEP_PID=$!
 track screen off
-trap "track screen on ; kill $SLEEP_PID" INT TERM
-wait
+slock
+track screen on
