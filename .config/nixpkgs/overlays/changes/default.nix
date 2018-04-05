@@ -40,5 +40,6 @@ self: super:
 
   abunchoftags = (super.callPackage ./abunchoftags.nix {});
 
+  xcopy = (super.callPackage ./xcopy.nix {});
   #  pulseaudio-dlna = (super.callPackage ./pulseaudio-dlna.nix {});
 }
