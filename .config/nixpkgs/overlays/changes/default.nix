@@ -16,18 +16,6 @@ self: super:
     x264 = self.x264;
   };
 
-  compton-custom = super.compton.overrideAttrs
-    (_ :
-    {
-      name = "compton-custom";
-      src =
-        super.fetchgit {
-        url = "https://github.com/larkery/compton.git";
-        rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
-        sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
-      };
-    });
-
   emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
 
   pass = super.pass.override {gnupg = self.gnupg;};

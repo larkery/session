@@ -56,12 +56,13 @@
     state))
 
 (let [df (java.text.SimpleDateFormat. "MMM dd EEE")
-
+      df2 (java.text.SimpleDateFormat. "YYYYMMdd")
       split-line (comp rest first #(re-seq #"^(\d+) ([^ ]+) ?(.+)$" %))
       ]
     (defn quantize [time]
       (let [d (java.util.Date. ^Long (* 1000 time))]
-        (.format df d)))
+        [(Integer/parseInt (.format df2 d))
+         (.format df d)]))
 
     (defn parse-line [line]
       (let [[time type msg] (split-line line)
@@ -106,25 +107,26 @@
 
 (defn -main [& args]
   (let [groups (process-db)]
-    (doseq [[group vals] groups]
-      (printf "%s\n" group)
-      (let [by-tag (group-by (comp :tag first) vals)]
-        (doseq [[tag vals] by-tag]
-          (let [tag-total-time (apply + (map second vals))
-                vals (filter #(>= (second %) 0.1) vals)
-                ]
-            (when (>= tag-total-time 0.1)
-              (if (= 1 (count vals))
-                (printf "* %s %s %.1f\n"
-                        tag
-                        (:windows (first (first vals)))
-                        tag-total-time)
+    (doseq [group (sort-by first (keys groups))]
+      (let [vals (groups group)]
+        (printf "%s\n" (second group))
+        (let [by-tag (group-by (comp :tag first) vals)]
+          (doseq [[tag vals] by-tag]
+            (let [tag-total-time (apply + (map second vals))
+                  vals (filter #(>= (second %) 0.1) vals)
+                  ]
+              (when (>= tag-total-time 0.1)
+                (if (= 1 (count vals))
+                  (printf "* %s %s %.1f\n"
+                          tag
+                          (:windows (first (first vals)))
+                          tag-total-time)
 
-                (do (printf "* %s %.1f\n" tag tag-total-time)
-                    (doseq [[{wins :windows} time] (reverse (sort-by second vals))]
-                      (printf "  - %s %.1f\n" wins time)
-                      ))
-                )
-              ))))
+                  (do (printf "* %s %.1f\n" tag tag-total-time)
+                      (doseq [[{wins :windows} time] (reverse (sort-by second vals))]
+                        (printf "  - %s %.1f\n" wins time)
+                        ))
+                  )
+                )))))
       (println)
       )))

@@ -1,12 +1,8 @@
 #!/bin/sh
-
-WINDOW=$(xdotool search --onlyvisible --maxdepth 1 --class Firefox)
-
-if [ -z "$WINDOW" ]
-then
-  firefox --new-window "$@"
+id=$(xdotool search --onlyvisible --classname Navigator)
+if [[ -z $id ]]; then
+    exec firefox --new-window "$@"
 else
-  xdotool windowactivate $WINDOW
-  firefox --new-tab "$@"
+    xdotool windowactivate $id
+    exec firefox --new-tab "$@"
 fi
-
