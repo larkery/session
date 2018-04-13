@@ -15,8 +15,8 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 compton -b
 
 {
-    pkill redshift
-    redshift -l 51.455313:-2.591902
+    pkill redshift-gtk
+    redshift-gtk -l 51.455313:-2.591902
 } &
 
 setxkbmap &
