@@ -21,7 +21,7 @@
    (sub "sap-steps" :sap-steps)
    #(when (= % "mail") #{:mail})
    (sub "heat-profiles" :heat-profiles)
-   (sub "ting" :ting)
+   (sub "ho ting guo" :ting)
 
    (fn project-code [x]
      (let [c
@@ -92,10 +92,6 @@
                {})
 
        :totals
-
-       (map (fn [[state time]] [state (double (/ time 3600))]))
-
-       (into {})
        ))
 
 (defn process-db []
@@ -105,28 +101,41 @@
           hours (group-by :hour lines)]
       (into {} (for [[hour events] hours] [hour (reduce-state events)])))))
 
+(defn format-ms [msec]
+  (cond
+    (> msec 1800)
+    (format "%.1fh" (/ (double msec) 3600))
+
+    (> msec 60)
+    (format "%dm" (int (/ (double msec) 60)))
+
+    :default
+    (format "%ds" (int msec))
+    )
+  )
+
 (defn -main [& args]
   (let [groups (process-db)]
     (doseq [group (sort-by first (keys groups))]
       (let [vals (groups group)]
-        (printf "%s\n" (second group))
+        (printf "%s %s\n" (second group) (format-ms (apply + (map second vals))))
         (let [by-tag (group-by (comp :tag first) vals)]
           (doseq [[tag vals] by-tag]
             (let [tag-total-time (apply + (map second vals))
-                  vals (filter #(>= (second %) 0.1) vals)
+                  vals (filter #(and
+                                 (not (empty? (:windows (first %))))
+                                 (>= (second %) 10)) vals)
                   ]
-              (when (>= tag-total-time 0.1)
-                (if (= 1 (count vals))
-                  (printf "* %s %s %.1f\n"
-                          tag
-                          (:windows (first (first vals)))
-                          tag-total-time)
+              (if (= 1 (count vals))
+                (printf "* %s %s %s\n"
+                        tag
+                        (:windows (first (first vals)))
+                        (format-ms tag-total-time))
 
-                  (do (printf "* %s %.1f\n" tag tag-total-time)
-                      (doseq [[{wins :windows} time] (reverse (sort-by second vals))]
-                        (printf "  - %s %.1f\n" wins time)
-                        ))
-                  )
+                (do (printf "* %s %s\n" tag (format-ms tag-total-time))
+                    (doseq [[{wins :windows} time] (reverse (sort-by second vals))]
+                      (printf "  - %s %s\n" wins (format-ms time))
+                      ))
                 )))))
       (println)
       )))

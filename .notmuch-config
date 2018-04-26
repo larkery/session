@@ -52,8 +52,8 @@ other_email=t@larkery.com;
 #
 
 [new]
-tags=inbox;new;untrained
-ignore=.uidvalidity;.mbsyncstate;classifier.updated;classifier2.db;classifier.db;last-sync
+tags=inbox;new
+ignore=.uidvalidity;.mbsyncstate;last-sync
 
 # Search configuration
 #
