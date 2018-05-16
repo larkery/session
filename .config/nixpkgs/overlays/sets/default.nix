@@ -9,7 +9,7 @@ self: super:
       vanilla-dmz
       emacs emacs-pdf-tools graphviz aspell aspellDicts.en w3m
 
-      notmuch isync msmtp html-tidy xmlstarlet
+      notmuch isync msmtp 
 
       gitAndTools.gitFull
       vcsh
@@ -33,11 +33,11 @@ self: super:
 
       xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight
 
-      libnotify dunst
-
-      polybar
+      libnotify
 
       pinentry
+
+      arandr autorandr
     ];
   };
 
