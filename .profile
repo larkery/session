@@ -5,14 +5,8 @@ export ALTERNATE_EDITOR=""
 export EDITOR="emacsclient"
 # fix stupid new LS behaviour
 export QUOTING_STYLE=literal
+export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
 
-export SSH_AUTH_SOCK="${HOME}/.gnupg/S.gpg-agent.ssh"
-if [ ! -S "${SSH_AUTH_SOCK}" ]; then
-    export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
-fi
-
-# broken JIT in javascriptcore; disable.
-export JavaScriptCoreUseJIT=0
 # broken scrolling in soffice
 export GDK_CORE_DEVICE_EVENTS=1
 

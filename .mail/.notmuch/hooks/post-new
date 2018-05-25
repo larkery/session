@@ -8,8 +8,12 @@ if [[ $NEW -gt 0 ]]; then
     echo "refile"
     CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-    SUB=$(notmuch search --format=json -- tag:new and not tag:sent |
-              jq -j '.[0:5]|.[]|.subject+"\n"')
+    SUB=$(notmuch search --limit=10 --format=json -- tag:new and not tag:sent |
+              jq -r '
+def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
+.[]| 
+"<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small>"
+')
 
     notmuch tag -new -- tag:new
 
@@ -25,8 +29,4 @@ if [[ $NEW -gt 0 ]]; then
     then
         notify "$NEW new mails" "$SUB"
     fi
-fi
-
-if [ x$DISPLAY != x ]; then
-    xprop -f UNREAD_EMAILS 8s -set UNREAD_EMAILS $(notmuch count tag:unread) -root
 fi
