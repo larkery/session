@@ -2,6 +2,17 @@
 
 NEW=$(notmuch count -- tag:new and not tag:sent)
 
+n () {
+    c=$1
+    shift
+    if [[ $c == 0 ]]; then
+        icon=~/.icons/gnome/16x16/status/mail-read.png
+    else
+        icon=~/.icons/gnome/16x16/status/mail-unread.png
+    fi
+    notify -a notmuch -i $icon "$@"  
+}
+
 if [[ $NEW -gt 0 ]]; then
     # echo "classify"
     # $MAIL_DIR/.notmuch/hooks/classify classify tag:new
@@ -12,7 +23,7 @@ if [[ $NEW -gt 0 ]]; then
               jq -r '
 def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
 .[]| 
-"<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small>"
+"<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small> "
 ')
 
     notmuch tag -new -- tag:new
@@ -27,6 +38,10 @@ def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
 
     if [ $NEW -ne 0 ]
     then
-        notify "$NEW new mails" "$SUB"
+        n $NEW -u normal "$NEW new mails" "$SUB"
+    else
+        n $NEW -u low "No new mails"
     fi
+else
+    n $NEW -u low "No new mails"
 fi
