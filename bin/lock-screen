@@ -1,6 +1,3 @@
 #!/bin/sh
 
-gpg-connect-agent reloadagent /bye
-track screen off
-slock
-track screen on
+

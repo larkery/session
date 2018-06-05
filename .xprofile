@@ -13,4 +13,4 @@ compton -b
 
 pkill redshift-gtk
 redshift-gtk -l 51.455313:-2.591902 &
-
+xss-lock gpg-connect-agent killagent /bye &
