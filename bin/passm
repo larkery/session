@@ -17,6 +17,9 @@ my $credentials;
 my $do_open;
 my $help;
 
+$ENV{GPG_TTY}="/dev/tty";
+$ENV{TERM}="vt100";
+
 GetOptions(
     "copy" => \$do_copy,
     "print" => \$do_print,
