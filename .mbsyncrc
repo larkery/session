@@ -1,7 +1,6 @@
 ########## CSE ##########
 
 IMAPAccount cse
-#   Host webmail.cse.org.uk
    Host outlook.office365.com
    User tomh@cse.org.uk
    SSLType STARTTLS
@@ -15,7 +14,7 @@ IMAPStore cse-remote
 MaildirStore cse-local
     Path ~/.mail/cse/
     Inbox ~/.mail/cse/Inbox
-   SubFolders Legacy
+    SubFolders Verbatim
 
 Channel cse
     Master :cse-remote:
@@ -42,7 +41,7 @@ MaildirStore fastmail-local
     Path ~/.mail/fastmail/
     Inbox ~/.mail/fastmail/Inbox
     Flatten "_"
-   SubFolders Legacy
+    SubFolders Verbatim
 
 Channel fastmail-inbox
     Master :fastmail-remote:
