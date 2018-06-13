@@ -38,6 +38,10 @@ self: super:
       pinentry
 
       arandr autorandr
+
+      dunst
+      pavucontrol
+      gnome2.gnome_icon_theme
     ];
   };
 
