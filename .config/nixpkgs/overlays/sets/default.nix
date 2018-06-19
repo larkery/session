@@ -42,6 +42,9 @@ self: super:
       dunst
       pavucontrol
       gnome2.gnome_icon_theme
+      
+      compton-custom
+      setroot
     ];
   };
 

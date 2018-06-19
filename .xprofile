@@ -13,6 +13,7 @@ compton -b
 
 pkill redshift-gtk
 redshift-gtk -l 51.455313:-2.591902 &
-xss-lock gpg-connect-agent killagent /bye &
-xsetroot -cursor_name left_ptr
+xss-lock gpg-connect-agent  /bye &
+xsetroot -bg black -cursor_name left_ptr
+setroot -sc black
 dunst &
