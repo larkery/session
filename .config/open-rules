@@ -14,7 +14,7 @@ name htm$
 name html$
 exec browser "file:///$1"
 mime image/.+
-exec feh "$1"
+exec sxiv "$1"
 test [ -d "$1/.git" ]
 exec emacsclient -c -e "(magit-status \"$1\")"
 mime application/msword

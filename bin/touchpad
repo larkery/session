@@ -1,2 +1,8 @@
 #!/bin/sh
-synclient TouchpadOff=$(synclient -l | grep TouchpadOff | tr -d -c 01 | tr 01 10)
+OFF=$(synclient -l | grep TouchpadOff | tr -d -c 01 | tr 01 10)
+synclient TouchpadOff=$OFF
+if [[ $OFF == 1 ]]; then
+    notify "Touchpad off"
+else
+    notify "Touchpad on"
+fi
