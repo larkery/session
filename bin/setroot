@@ -1,0 +1,4 @@
+#!/bin/sh
+
+xsetroot -bg black -cursor_name left_ptr
+fbsetroot -mod 50 50 -from darkslategray -to black
