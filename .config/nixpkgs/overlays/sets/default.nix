@@ -44,7 +44,7 @@ self: super:
       gnome2.gnome_icon_theme
       
       compton-custom
-      setroot
+      fluxbox
     ];
   };
 

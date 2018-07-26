@@ -1,5 +1,5 @@
 [global]
-    font = Sans 10
+    font = Sans 12
     allow_markup = yes
 
     format = "<b>%s</b>\n%b %p"
@@ -16,9 +16,9 @@
     frame_width = 0
 
     #   [{width}]x{height}[+/-{x}+/-{y}]
-    geometry = "300x24-8+8"
+    geometry = "1000x24-10+10"
 
-    shrink = no
+    shrink = yes
 
     idle_threshold = 120
 

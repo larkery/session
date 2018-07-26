@@ -15,5 +15,10 @@ pkill redshift-gtk
 redshift-gtk -l 51.455313:-2.591902 &
 xss-lock gpg-connect-agent  /bye &
 xsetroot -bg black -cursor_name left_ptr
-setroot -sc black
+fbsetroot -mod 50 50 -from darkslategray -to black
 dunst &
+
+# broken scrolling in soffice
+export GDK_CORE_DEVICE_EVENTS=1
+# force soffice to use GTK in xmonad.
+export SAL_USE_VCLPLUGIN=gtk
