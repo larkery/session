@@ -1,6 +1,7 @@
 #define FONT Monospace-12
 
 URxvt.perl-ext-common: default,tabbedex
+URxvt.perl-ext: reload-resources
 
 URxvt.font: xft:Monospace:size=12
 URxvt.boldFont: xft:Monospace:size=12:weight=bold
@@ -15,6 +16,7 @@ URxvt*secondaryScreen: True
 URxvt*secondaryScroll: False
 URxvt*secondaryWheel: True
 URxvt*iconFile:/home/hinton/.icons/gnome/32x32/apps/utilities-terminal.png
+URxvt*dynamicColors: true
 
 URxvt*scrollBar: false
 
