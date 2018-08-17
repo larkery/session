@@ -9,7 +9,8 @@ self: super:
 #          ./patches/0001-Allow-minibuffer-to-shrink-to-zero-lines.patch
           ./patches/emacs-double-buffer.patch
         ];
-        configureFlags = a.configureFlags ++ ["--with-imagemagick"];
+        configureFlags = a.configureFlags ++ ["--with-imagemagick"
+                                              "--with-x-toolkit=athena"];
         buildInputs = a.buildInputs ++ [self.imagemagick.dev];
       })).override { withGTK2 = false; withGTK3 = false; srcRepo = true; };
 
