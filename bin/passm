@@ -139,18 +139,23 @@ if ($do_open) {
         close $fh;
     }
 
-    my @args = ("yad", "--class", "password-input", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form");
+    my @args = ("yad", "--class", "password-input", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form", "--columns=2");
 
-    for my $field (keys %fieldvals) {
-        push @args, "--field=$field:fbtn";
-        push @args, "echo '$field'";
+    for my $field (sort keys %fieldvals) {
+        if ($field eq "url") {
+            push @args, "--button=Login page:echo '$field'";
+        } elsif ($field eq "browser") {
+        } else {
+            push @args, "--field=$field:btn";
+            push @args, "echo '$field'";
+        }
     }
 
     push @args, "--button=gtk-cancel:0";
-    push @args, "--mouse";
     push @args, "--on-top";
     push @args, "--no-focus";
-
+    push @args, "--borders=8";
+    
     open(my $yad, '-|:encoding(utf-8)', @args);
     while (<$yad>) {
         chomp;
@@ -161,7 +166,9 @@ if ($do_open) {
                 $url = "http://$url";
             }
 
-            system "xdg-open", ($url)
+            my $browser = $fieldvals{"browser"} || "xdg-open";
+            
+            system $browser, ($url)
         } else {
             xtype $fieldvals{$_} if $fieldvals{$_};
         }
