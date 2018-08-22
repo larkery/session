@@ -1,4 +1,4 @@
 #!/bin/sh
 
 xsetroot -bg black -cursor_name left_ptr
-fbsetroot -gradient vertical -from darkmagenta -to black
+fbsetroot -mod 8 8 -fg grey30 -bg black
