@@ -1,3 +1,5 @@
+#!/usr/bin/env nix-shell
+#! nix-shell -i perl -p perl -p perlPackages.MailIMAPClient -p perlPackages.IOSocketSSL
 #!/usr/bin/env perl
 
 use warnings;
@@ -63,7 +65,8 @@ for my $server ( keys %accts ) {
 
             $pass =~ s/^"//;
             $pass =~ s/"$//;
-            $pass = `$pass`;
+            $pass =`$pass`;
+            chomp $pass;
 
             print "connecting to $host:$ssltype...\n";
             my $client;
@@ -86,10 +89,12 @@ for my $server ( keys %accts ) {
                     );
             }
             next reconnect unless $client;
-            # die "cannot connect to $host: $!\n"
-            $client->select($mailbox) or next reconnect;#;;die("cannot select $mailbox in $host\n");
+
+            $client->select($mailbox) or next reconnect;
+            
             until (0) {
                 ## die "$host disconnected\n"
+            
                 next reconnect unless $client->IsConnected;
                 my $unseen = 0 + $client->unseen_count;
                 my $lunseen = 0 + `notmuch count 'tag:unread and tag:inbox and path:$server/**'`;
