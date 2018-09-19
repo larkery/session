@@ -14,3 +14,5 @@ checkout = git clone 'ssh://git@github.com/larkery/zsh.git' '.zsh'
 checkout = vcsh clone ssh://git@github.com/larkery/session.git session
 
 [/etc/nixos]
+[.config/i3]
+checkout = git clone 'git@github.com:larkery/i3.git' 'i3'

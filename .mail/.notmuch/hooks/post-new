@@ -40,8 +40,8 @@ def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
     then
         n $NEW -u normal "$NEW new mails" "$SUB"
     else
-        n $NEW -u low "No new mails"
+        if [[ -z $QUIET ]] ; then n $NEW -u low "No new mails"; fi
     fi
 else
-    n $NEW -u low "No new mails"
+    if [[ -z $QUIET ]] ; then n $NEW -u low "No new mails"; fi
 fi

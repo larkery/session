@@ -7,6 +7,8 @@ use strict;
 use Mail::IMAPClient;
 use IO::Socket::SSL;
 
+$ENV{"QUIET"} = "1";
+
 unless (-t STDIN) {
     exec "urxvt", "-bg", "darkslategrey", "-e", $0;
 }
@@ -99,15 +101,14 @@ for my $server ( keys %accts ) {
                 my $unseen = 0 + $client->unseen_count;
                 my $lunseen = 0 + `notmuch count 'tag:unread and tag:inbox and path:$server/**'`;
                 if ($lunseen != $unseen) {
-                    print "counts not matched $server\n";
+                    print "update $server, $unseen <> $lunseen\n";
                     lock_system($update_cmd);
                 }
-                print "$server: $unseen $lunseen\n";
+
                 my $tag = $client->idle() or next reconnect;
                 my $msgs = $client->idle_data(300);
                 next reconnect unless defined $msgs;
                 if (scalar(@$msgs)) {
-                    print "sync $server\n";
                     lock_system($update_cmd);
                 }
                 $client->done($tag);

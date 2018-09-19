@@ -45,6 +45,8 @@ self: super:
       
       compton-custom
       fluxbox
+
+      polybar
     ];
   };
 
@@ -80,6 +82,7 @@ self: super:
         memisc
         lubridate
         hexbin
+        kernlab
       ];
     })];
   };
