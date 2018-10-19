@@ -21,6 +21,7 @@ mime application/msword
 mime application/vnd.oasis.opendocument.text
 name docx?$
 name xlsx?$
+name csv$
 exec soffice "$1"
 mime text/.+
 scheme org-protocol
