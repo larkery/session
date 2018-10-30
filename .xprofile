@@ -16,6 +16,7 @@ redshift-gtk -l 51.455313:-2.591902 &
 xss-lock gpg-connect-agent  /bye &
 ~/bin/setroot
 dunst &
+pasystray &
 
 # broken scrolling in soffice
 export GDK_CORE_DEVICE_EVENTS=1
