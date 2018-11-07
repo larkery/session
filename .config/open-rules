@@ -22,6 +22,7 @@ mime application/vnd.oasis.opendocument.text
 name docx?$
 name xlsx?$
 name csv$
+name tab$
 exec soffice "$1"
 mime text/.+
 scheme org-protocol
