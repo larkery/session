@@ -5,10 +5,7 @@ self: super:
     (super.emacs25.overrideAttrs
     (a :
       {
-        patches = a.patches ++ [
-#          ./patches/0001-Allow-minibuffer-to-shrink-to-zero-lines.patch
-          ./patches/emacs-double-buffer.patch
-        ];
+        patches = a.patches ++ [ ./patches/emacs-double-buffer.patch ];
         configureFlags = a.configureFlags ++ ["--with-imagemagick"
                                               "--with-x-toolkit=athena"];
         buildInputs = a.buildInputs ++ [self.imagemagick.dev];
@@ -44,5 +41,11 @@ self: super:
       };
     }
   );
+
+  xwinmosaic = (super.xwinmosaic.overrideAttrs (a : {
+    patches = [./patches/xwinmosaic-print-id.patch];
+  }));
+
+  i3pop = (super.callPackage ./i3pop.nix {});
 
 }

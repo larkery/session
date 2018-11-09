@@ -7,6 +7,7 @@ IMAPAccount cse
    SystemCertificates yes
    AuthMechs LOGIN
    PassCmd "passm --print cse.org.uk"
+   PipelineDepth 1
 
 IMAPStore cse-remote
     Account cse
