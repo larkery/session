@@ -22,10 +22,6 @@ self: super:
 
   ripright = (super.callPackage ./ripright.nix {});
 
-#  gdal = (super.callPackage ./gdal.nix {});
-
-  grass72 = (super.callPackage ./grass.nix {});
-
   abunchoftags = (super.callPackage ./abunchoftags.nix {});
 
   xcopy = (super.callPackage ./xcopy.nix {});
