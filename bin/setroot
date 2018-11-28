@@ -1,4 +1,5 @@
 #!/bin/sh
 
-xsetroot -bg black -cursor_name left_ptr
-fbsetroot -mod 8 8 -fg grey10 -bg black
+xsetroot -cursor_name left_ptr
+hsetroot -solid '#2f4f4f'
+

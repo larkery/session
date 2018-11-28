@@ -1,56 +1,6 @@
 self: super:
 
 {
-  commonPackages = self.buildEnv {
-    name = "common-packages";
-    paths = with self; [
-      gtk-engine-murrine
-      zuki-themes
-      vanilla-dmz
-      emacs emacs-pdf-tools graphviz aspell aspellDicts.en w3m
-
-      notmuch isync msmtp 
-
-      gitAndTools.gitFull
-      vcsh
-      mr
-      pass gnupg
-
-      file yad # for xdg-open
-
-      man-pages
-      acpi
-
-      zip unzip
-      ag most htop jq which sqlite
-
-      pamixer
-      redshift
-      xss-lock
-      rxvt_unicode-with-plugins
-
-      wpa_supplicant_gui
-
-      xclip xorg.xclock xdotool xorg.xkill xorg.xbacklight
-
-      libnotify
-
-      pinentry
-
-      arandr autorandr
-
-      dunst
-      pavucontrol
-      gnome2.gnome_icon_theme
-      
-      compton-custom
-      fluxbox
-
-      polybar
-    ];
-  };
-
-
   gisPackages = self.buildEnv {
     name = "gis-packages";
     paths = with self; [
@@ -86,7 +36,6 @@ self: super:
       ];
     })];
   };
-
 
   clojurePackages = self.buildEnv {
     name = "clojure-packages";

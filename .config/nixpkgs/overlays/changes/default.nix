@@ -1,42 +1,24 @@
 self: super:
 
 {
-  emacs25 =
-    (super.emacs25.overrideAttrs
-    (a :
-      {
-        patches = a.patches ++ [ ./patches/emacs-double-buffer.patch ];
-        configureFlags = a.configureFlags ++ ["--with-imagemagick"
-                                              "--with-x-toolkit=athena"];
-        buildInputs = a.buildInputs ++ [self.imagemagick.dev];
-      })).override { withGTK2 = false; withGTK3 = false; srcRepo = true; };
+  # emacs25 =
+  #   (super.emacs25.overrideAttrs
+  #   (a :
+  #     {
+  #       patches = a.patches ++ [ ./patches/emacs-double-buffer.patch ];
+  #       configureFlags = a.configureFlags ++ ["--with-imagemagick"
+  #                                             "--with-x-toolkit=athena"];
+  #       buildInputs = a.buildInputs ++ [self.imagemagick.dev];
+  #     })).override { withGTK2 = false; withGTK3 = false; srcRepo = true; };
 
   mplayer = super.mplayer.override {
     x264Support = true;
     x264 = self.x264;
   };
 
-  emacs-pdf-tools = (super.callPackage ./pdf-tools.nix {});
-
-  pass = super.pass.override {gnupg = self.gnupg;};
-
   ripright = (super.callPackage ./ripright.nix {});
 
-  abunchoftags = (super.callPackage ./abunchoftags.nix {});
-
   xcopy = (super.callPackage ./xcopy.nix {});
-
-  compton-custom = super.compton.overrideAttrs (_:
-    {
-      name = "compton-custom-hinton";
-      src =
-        super.fetchgit {
-        url = "https://github.com/larkery/compton.git";
-        rev = "3a28338cd8bd51188dbf000bfdf9404502a26ac8";
-        sha256 = "07lyw2df9cjcjmjjv1j70m1j4k8r9hbqivxb2vp4fl8zrxb2rq38";
-      };
-    }
-  );
 
   xwinmosaic = (super.xwinmosaic.overrideAttrs (a : {
     patches = [./patches/xwinmosaic-print-id.patch];
