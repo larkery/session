@@ -23,7 +23,7 @@ err () {
 export XDG_OPEN_DEPTH=$(( ${XDG_OPEN_DEPTH:-0} + 1 ))
 
 if [[ $XDG_OPEN_DEPTH -gt 5 ]]; then
-    err "recursive xdg-open looop" "$1"
+    err "recursive xdg-open loop" "$1"
     exit 1
 fi
 
@@ -72,11 +72,14 @@ while read -r mode match; do
     fi
 done < "$RULES_FILE"
 
+TGT="$1"
+autoload -U regexp-replace
+regexp-replace TGT /+ /
 
-CMD=$(yad --center --entry --on-top --completion --entry-label "Open $1 with:" ${(ko)commands})
+CMD=$(yad --center --entry --on-top --completion --entry-label "Open $TGT with:" ${(ko)commands})
 
 if [[ $? -eq 0 ]]; then
-    exec "$CMD" "$1"
+    exec "$CMD" "$TGT"
 else
     err "xdg-open failed: $1 has no matching rule"
     exit 1

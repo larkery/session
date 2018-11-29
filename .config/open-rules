@@ -25,6 +25,7 @@ name csv$
 name tab$
 exec soffice "$1"
 mime text/.+
+mime inode/directory
 scheme org-protocol
 exec emacsclient -c "$1"
 mime audio/.+
