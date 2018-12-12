@@ -1,0 +1,8 @@
+#!/bin/sh
+
+W=$(xwininfo -tree -root | grep wpa_gui | grep 15x15 | awk '{print $1}')
+if [ -n "$W" ]; then
+   xdotool click --window "$W" 1
+else
+   wpa_gui
+fi
