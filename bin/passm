@@ -134,8 +134,8 @@ if ($credentials) {
 if ($do_open) {
     sub xtype {
         my $text = shift;
-        open(my $fh, "|-:encoding(utf-8)", "xdotool", "-");
-        print $fh "type $text\n";
+        open(my $fh, "|-:encoding(utf-8)", "xte");
+        print $fh "str $text\n";
         close $fh;
     }
 

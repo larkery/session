@@ -26,4 +26,5 @@ self: super:
 
   i3pop = (super.callPackage ./i3pop.nix {});
 
+  nitroshare = (super.libsForQt5.callPackage ./nitroshare.nix {});
 }

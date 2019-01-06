@@ -216,6 +216,11 @@ propagate_headers = [ ('tag:new', tag_headers({
     'Expires':lambda e : "expires"
 })), ('tag:expires', expire) ]
 
+tag_account = [
+    ('tag:new and folder:/cse/.*/', add_tag('work')),
+    ('tag:new and folder:/fastmail/.*/', add_tag('home'))
+]
+
 def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
     return {
         'root':maildir,
@@ -230,7 +235,8 @@ actions = [item for l in
             only_one_gym,
             manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
             manage_inbox('larkery.com', folders('fastmail')),
-            tag_calendar] for item in l]
+            tag_calendar,
+            tag_account] for item in l]
 
 def is_maildir(maildir):
     return '.uidvalidity' in maildir[2]

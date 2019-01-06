@@ -10,3 +10,5 @@ export SSH_AUTH_SOCK="/run/user/$UID/gnupg/S.gpg-agent.ssh"
 # disable coredumps
 ulimit -S -c 0 >/dev/null 2>&1
 export LESS="-R -W"
+
+export PROFILE=home
