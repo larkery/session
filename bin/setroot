@@ -1,5 +1,5 @@
 #!/bin/sh
 
 xsetroot -cursor_name left_ptr
-hsetroot -add '#ee00ee' -add '#00bfff' -gradient 30
+hsetroot -add '#aa00aa' -add '#00bfff' -gradient 30
 
