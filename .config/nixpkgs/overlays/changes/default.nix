@@ -1,16 +1,6 @@
 self: super:
 
 {
-  # emacs25 =
-  #   (super.emacs25.overrideAttrs
-  #   (a :
-  #     {
-  #       patches = a.patches ++ [ ./patches/emacs-double-buffer.patch ];
-  #       configureFlags = a.configureFlags ++ ["--with-imagemagick"
-  #                                             "--with-x-toolkit=athena"];
-  #       buildInputs = a.buildInputs ++ [self.imagemagick.dev];
-  #     })).override { withGTK2 = false; withGTK3 = false; srcRepo = true; };
-
   mplayer = super.mplayer.override {
     x264Support = true;
     x264 = self.x264;
@@ -25,6 +15,4 @@ self: super:
   }));
 
   i3pop = (super.callPackage ./i3pop.nix {});
-
-  nitroshare = (super.libsForQt5.callPackage ./nitroshare.nix {});
 }
