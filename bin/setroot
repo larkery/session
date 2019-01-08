@@ -1,5 +1,9 @@
 #!/bin/sh
-
 xsetroot -cursor_name left_ptr
-hsetroot -add '#aa00aa' -add '#00bfff' -gradient 30
+
+if [[ -d ~/temp/wallpaper ]]; then
+    feh --randomize --bg-fill ~/temp/wallpaper
+else
+    hsetroot -add '#aa00aa' -add '#00bfff' -gradient 30
+fi
 
