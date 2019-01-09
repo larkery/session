@@ -139,7 +139,7 @@ if ($do_open) {
         close $fh;
     }
 
-    my @args = ("yad", "--class", "password-input", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form", "--columns=2");
+    my @args = ("yad", "--class", "password-input", "--mouse", "--width", "200", "--title", "pass: $entry", "--text", "$entry: \n$notes", "--form", "--columns=2");
 
     for my $field (sort keys %fieldvals) {
         if ($field eq "url") {
