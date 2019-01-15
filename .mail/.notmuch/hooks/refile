@@ -139,22 +139,6 @@ def add_regex_tag(rxs):
     rx_tagger.__name__ = 'rx_tag(' + rxs + ')'
     return rx_tagger
 
-def awaken(tags, path):
-    def awakener(m, db):
-        for tag in tags:
-            m.remove_tag(tag)
-        m.remove_tag('asleep')
-        m.add_tag('inbox')
-        m.add_tag('flagged')
-        # refile
-        fn = m.get_filename()
-        fn2 = refile(fn, path)
-        db.add_message(fn2)
-        db.remove_message(fn)
-        return [md(fn), md(fn2)]
-    awakener.__name__ = 'awaken('+path+')'
-    return awakener
-
 def S(things):
     def fn(m, db):
         result = []
@@ -170,15 +154,6 @@ def restrict(query, actions):
         return ( '%s AND (%s)' % (query, Q) , A )
     return map(_restrict,  actions)
 
-def sleepy_tag(t):
-    if t.startswith('asleep-until'):
-        au = dt.datetime.strptime(t, "asleep-until-%Y-%m-%d")
-        if au <= today:
-            return True
-    return False
-
-sleepy_tags = list(filter(sleepy_tag, db.get_all_tags()))
-
 def manage_inbox(me, folders):
     actions = [
         ('tag:inbox and not tag:sent and not folder:"%(inbox)s"' % folders, remove_tag('inbox')),
@@ -187,28 +162,8 @@ def manage_inbox(me, folders):
         ('tag:new and folder:"%(sent)s"' % folders, sync_maildir)
     ]
 
-    if sleepy_tags:
-        for tag in sleepy_tags:
-            actions.append(
-                (' OR '.join(map(lambda t : 'tag:'+t, sleepy_tags)), awaken(sleepy_tags, '%(inbox)s' % folders))
-            )
-
     return restrict('path:%(root)s/**' % folders, actions)
 
-def after(n, a):
-    rem = n
-    def fn(m, db):
-        nonlocal rem
-        if rem > 0:
-            rem = rem - 1
-            return []
-        else:
-            return a(m, db)
-    fn.__name__ = 'after({n}, {d})'.format(n=n, d=a.__name__)
-    return fn
-
-only_one_gym = [ ('tag:gym and tag:inbox and autobook', after(1, remove_tag('inbox'))),
-                 ('tag:gym and tag:inbox and registration', after(1, remove_tag('inbox')))]
 delete_deleted = [ ('tag:deleted', delete) ]
 tag_calendar = [ ('text/calendar and not tag:meeting', add_tag('meeting')) ]
 propagate_headers = [ ('tag:new', tag_headers({
@@ -232,7 +187,6 @@ def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
 actions = [item for l in
            [delete_deleted,
             propagate_headers,
-            only_one_gym,
             manage_inbox('tom.hinton@cse.org.uk', folders('cse', archive='Archives')),
             manage_inbox('larkery.com', folders('fastmail')),
             tag_calendar,
