@@ -27,7 +27,8 @@ if [[ $XDG_OPEN_DEPTH -gt 5 ]]; then
     exit 1
 fi
 
-RE_MATCH_PCRE=1
+setopt REMATCH_PCRE
+setopt EXTENDED_GLOB
 
 if [ -e "$1" ]; then
     mime="$(file --mime-type --brief $1)"
@@ -36,39 +37,41 @@ fi
 
 found=1
 
-while read -r mode match; do
+echo "xdg-open $1 $mime" >> ~/temp/open-log
+
+while read -r mode query; do
     if [ $found != 0 ]; then
         case $mode in
             test)
                 t="$1"
                 1=${(q)1}
-                eval $(eval echo $match)
+                eval $(eval echo $query)
                 found=$?
                 1=$t
                 ;;
             name)
-                [[ -n $exists && "$1" =~ "${match}" ]]
+                [[ -n $exists && "$1" =~ "${query}" ]]
                 found=$?
             ;;
             mime)
-                [[ -n $exists && "$mime" =~ "${match}"  ]]
+                [[ -n $exists && "$mime" =~ "${query}"  ]]
                 found=$?
             ;;
             scheme)
-                match="^$match:"
-                [[ -z $exists && "$1" =~ "${match}" ]]
+                query="^${query}:"
+                [[ -z $exists && "$1" =~ "${query}" ]]
                 found=$?
             ;;
             url)
-                [[ -z $exists && "$1" =~ "${match}" ]]
+                [[ -z $exists && "$1" =~ "${query}" ]]
                 found=$?
             ;;
         esac
     elif [ $mode = run ]; then
-        eval $match
+        eval $query
         exit 0
     elif [ $mode = exec ]; then
-        eval exec $match
+        eval exec $query
     fi
 done < "$RULES_FILE"
 
@@ -79,6 +82,7 @@ regexp-replace TGT /+ /
 CMD=$(yad --center --entry --on-top --completion --entry-label "Open $TGT with:" ${(ko)commands})
 
 if [[ $? -eq 0 ]]; then
+    echo "exec $CMD $TGT" >> ~/temp/open-log
     exec "$CMD" "$TGT"
 else
     err "xdg-open failed: $1 has no matching rule"
