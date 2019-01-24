@@ -11,10 +11,10 @@ setxkbmap
 gpg-connect-agent -q updatestartuptty /bye
 compton -b
 
+autorandr -c
 pkill redshift-gtk
 redshift-gtk -l 51.455313:-2.591902 &
 xss-lock gpg-connect-agent  /bye &
-~/bin/setroot
 dunst &
 pasystray &
 
