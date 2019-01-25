@@ -1,78 +1,36 @@
 [global]
     font = Sans 12
     allow_markup = yes
-
-    format = "<b>%s</b>\n%b %p"
+    format = "<b>%s</b>: %b %p"
     sort = yes
     indicate_hidden = yes
     alignment = left
-
-    bounce_freq = 0
-    show_age_threshold = 60
-    word_wrap = yes
-    ignore_newline = no
-
     transparency = 10
-    frame_width = 0
-
-    #   [{width}]x{height}[+/-{x}+/-{y}]
-    geometry = "1000x24-10+10"
-
-    shrink = yes
-
-    idle_threshold = 120
-
-    follow = mouse
-
-    sticky_history = yes
-
-    history_length = 20
-
-    show_indicators = yes
-
-    line_height = 0
-
-    separator_height = 2
-
-    padding = 2
-
-    horizontal_padding = 6
-
-    separator_color = frame
-
-    startup_notification = false
-
-    # dmenu path.
-    dmenu = /usr/bin/dmenu -p dunst:
-
-    # Browser for opening urls in context menu.
     browser = browser
-
-    frame_color = "#aaaaaa"
-
-    max_icon_size = 16
+    follow = mouse
+    shrink = no
+    geometry = "400x10-8+8"
+    frame_width = 2
+    mouse_left_click = do_action
     icon_position = right
-    icon_folders = /home/hinton/.icons/Tango/16x16/status/:/home/hinton/.icons/Tango/16x16/hardware/
-
-[shortcuts]
-    # Close notification.
-    close = ctrl+space
-    # Close all notifications.
-    close_all = ctrl+shift+space
-    history = ctrl+grave
-
-[urgency_low]
-    background = "#666666"
-    foreground = "#eaeaea"
-    timeout = 5
+    padding = 2
+    horizontal_padding = 2
 
 [urgency_normal]
-    background = "#555555"
-    foreground = "#fafafa"
-    timeout = 5
+    background = "#ddffdd"
+    foreground = "#000000"
+    frame_color = "#349f86"
 
 [urgency_critical]
-    background = "#EE3333"
-    foreground = "#ffffff"
-    frame_color = "#ff3333"
-    timeout = 0
+    background = "#ffcccc"
+    foreground = "#000000"
+    frame_color = "#d33682"
+
+[urgency_low]
+    background = "#cccccc"
+    foreground = "#000000"
+    frame_color = "#333333"
+
+[shortcuts]
+    close = ctrl+space
+    history = ctrl+grave
