@@ -2,7 +2,7 @@ i3wm.border:         #fdf6e3
 i3wm.urgent:         #d33682
 i3wm.accent:         #6c71c4
 i3wm.edge:           #00C1FF
-i3wm.background:     #cdc6b3
+i3wm.background:     #eae2d0
 i3wm.foreground:     #002b36
 i3wm.bar_background: #002b36
 i3wm.bar_foreground: #fdf6e3
