@@ -1,7 +1,8 @@
 [global]
     font = Sans 12
     allow_markup = yes
-    format = "<b>%s</b>: %b %p"
+    format = "<b>%s</b>\n%b %p"
+    icon_folders = /run/current-system/sw/share/icons/gnome/16x16/status/
     sort = yes
     indicate_hidden = yes
     alignment = left
@@ -10,7 +11,7 @@
     follow = mouse
     shrink = no
     geometry = "400x10-8+8"
-    frame_width = 2
+    frame_width = 0
     mouse_left_click = do_action
     icon_position = right
     padding = 2
