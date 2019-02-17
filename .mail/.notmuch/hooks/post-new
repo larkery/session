@@ -6,9 +6,9 @@ n () {
     c=$1
     shift
     if [[ $c == 0 ]]; then
-        icon=~/.icons/gnome/16x16/status/mail-read.png
+        icon=mail-read
     else
-        icon=~/.icons/gnome/16x16/status/mail-unread.png
+        icon=mail-unread
     fi
     notify -a notmuch -i $icon "$@"  
 }
