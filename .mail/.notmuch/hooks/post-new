@@ -31,7 +31,7 @@ def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
     # if the refiler changed some stuff, we should probably sync again
     if [[ $#CHANGED -gt 1 ]]; then
         echo "$#CHANGED" "$CHANGED"
-        mbsync -q $CHANGED 2>&1
+        pmbsync $CHANGED 2>&1
         ## DANGER WILL ROBINSON
         notmuch new
     fi

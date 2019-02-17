@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+if [[ "$#" = 0 ]]; then
+    CACHE="${HOME}/.cache/pmbysnc-channels"
+    NOW=$(date +%s)
+    THEN=$(date -r "$CACHE" +%s)
+    D=$(( NOW - THEN ))
+
+    if [[ $D -gt 86400 ]]; then
+        grep Channel ~/.mbsyncrc |
+            cut -f2 -d' ' |
+            while read chn; do
+                mbsync -l $chn | sed 's/.*/'"$chn:"'&/'
+            done > "$CACHE"
+    fi
+    while read box; do
+        echo "start $box"
+        sleep 0.08
+        mbsync -q "$box" &
+    done < "$CACHE"
+else
+    for x in "$@"; do
+        sleep 0.08
+        mbsync -q "$x" &
+    done
+fi
+
+wait

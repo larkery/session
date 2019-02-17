@@ -1,10 +1,8 @@
 #!/usr/bin/env zsh
 
 CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
-CHANGED+=(fastmail-inbox)
-if [[ $WORK != 0 ]]; then
-    CHANGED+=(cse:Inbox)
-fi
+CHANGED+=(fastmail-inbox:INBOX)
+CHANGED+=(cse:Inbox)
 typeset -U CHANGED
 
 if [ ! "$?" -eq 0 ]
@@ -20,14 +18,10 @@ if [[ -z "$NO_SYNC" ]]; then
         echo "check all mail"
         FULL=1
         # also delete duplicates
-        if [[ $WORK == 0 ]]; then
-            E=$(mbsync -q fastmail 2>&1)
-        else
-            E=$(mbsync -q -a 2>&1)
-        fi
+        E=$(pmbsync 2>&1)
     else
         echo check "$CHANGED"
-        E=$(mbsync -q $CHANGED 2>&1)
+        E=$(pmbsync $CHANGED 2>&1)
     fi
 fi
 
