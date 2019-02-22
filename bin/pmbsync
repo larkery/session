@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+go () {
+    echo "start $box"
+    mbsync -q "$box"
+    if [[ $? -ne 0 ]]; then
+        echo "err $box"
+    fi
+    echo "end $box"
+}
+
 if [[ "$#" = 0 ]]; then
     CACHE="${HOME}/.cache/pmbysnc-channels"
     NOW=$(date +%s)
@@ -14,14 +23,11 @@ if [[ "$#" = 0 ]]; then
             done > "$CACHE"
     fi
     while read box; do
-        echo "start $box"
-        sleep 0.08
-        mbsync -q "$box" &
+        go "$box" &
     done < "$CACHE"
 else
     for x in "$@"; do
-        sleep 0.08
-        mbsync -q "$x" &
+        go "$x" &
     done
 fi
 
