@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 go () {
+    local box="$1"
     echo "start $box"
     mbsync -q "$box"
     if [[ $? -ne 0 ]]; then
@@ -26,8 +27,8 @@ if [[ "$#" = 0 ]]; then
         go "$box" &
     done < "$CACHE"
 else
-    for x in "$@"; do
-        go "$x" &
+    for box in "$@"; do
+        go "$box" &
     done
 fi
 
