@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-NEW=$(notmuch count -- tag:new and not tag:sent)
+NEW=$(notmuch count -- "tag:new")
+NEW_IN=$(notmuch count -- "tag:new and not tag:sent")
 
 n () {
     c=$1
@@ -36,12 +37,8 @@ def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
         notmuch new
     fi
 
-    if [ $NEW -ne 0 ]
+    if [ $NEW_IN -ne 0 ]
     then
-        n $NEW -u normal "$NEW new mails" "$SUB"
-    else
-        if [[ -z $QUIET ]] ; then n $NEW -u low "No new mails"; fi
+        n $NEW_IN -u normal "Received $NEW_IN mails" "$SUB"
     fi
-else
-    if [[ -z $QUIET ]] ; then n $NEW -u low "No new mails"; fi
 fi

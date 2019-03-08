@@ -11,7 +11,7 @@ tags=inbox;new
 ignore=.uidvalidity;.mbsyncstate;last-sync
 
 [search]
-exclude_tags=deleted;spam;work
+exclude_tags=deleted;spam
 
 [maildir]
 synchronize_flags=true
