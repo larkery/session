@@ -20,13 +20,18 @@ if [[ $NEW -gt 0 ]]; then
     echo "refile"
     CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-    SUB=$(notmuch search --limit=10 --format=json -- tag:new and not tag:sent |
-              jq -r '
-def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
-.[]| 
-"<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small> "
-')
+#     SUB=$(notmuch search --limit=10 --format=json -- tag:new and not tag:sent |
+#               jq -r '
+# def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
+# .[]| 
+# "<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small> "
+# ')
 
+    if [ $NEW_IN -ne 0 ]
+    then
+        notmuch search --format=json -- tag:new and not tag:sent | jq -r 'def trunc(n): if (. | length) < n then . else .[:n] + "..." end; .[]| [.date_relative, (.subject | trunc(40)), (.authors |trunc(20))] | @tsv' | column -t -s $'\t'
+    fi
+    
     notmuch tag -new -- tag:new
 
     # if the refiler changed some stuff, we should probably sync again
@@ -35,10 +40,5 @@ def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
         pmbsync $CHANGED 2>&1
         ## DANGER WILL ROBINSON
         notmuch new
-    fi
-
-    if [ $NEW_IN -ne 0 ]
-    then
-        n $NEW_IN -u normal "Received $NEW_IN mails" "$SUB"
     fi
 fi

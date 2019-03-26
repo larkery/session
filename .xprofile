@@ -9,7 +9,7 @@ echo ${DBUS_SESSION_BUS_ADDRESS} > .dbus_session_bus_address
 
 setxkbmap
 gpg-connect-agent -q updatestartuptty /bye
-compton -b
+# compton -b
 
 autorandr -c
 pkill redshift-gtk
@@ -17,6 +17,7 @@ redshift-gtk -l 51.455313:-2.591902 &
 xss-lock gpg-connect-agent  /bye &
 dunst &
 pasystray &
+nm-applet &
 
 # broken scrolling in soffice
 export GDK_CORE_DEVICE_EVENTS=1
