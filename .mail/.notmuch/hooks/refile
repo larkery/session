@@ -172,8 +172,8 @@ propagate_headers = [ ('tag:new', tag_headers({
 })), ('tag:expires', expire) ]
 
 tag_account = [
-    ('tag:new and folder:/cse/.*/', add_tag('work')),
-    ('tag:new and folder:/fastmail/.*/', add_tag('home'))
+    ('tag:new and folder:/cse/', add_tag('work')),
+    ('tag:new and folder:/fastmail/', add_tag('home'))
 ]
 
 def folders(maildir, archive='Archive', inbox='Inbox', sent='Sent Items'):
