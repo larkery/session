@@ -32,9 +32,6 @@ XTerm*on4Clicks: group
 XTerm*visualBell: true
 XTerm*visualBellLine: true
 
-Emacs*FontBackend: xft
-Emacs*font: FONT
-
 xclock*geometry: 100x100-10+10
 xclock*analog: true
 xclock*update: 1
@@ -43,21 +40,12 @@ Xcursor.theme: Vanilla-DMZ-AA
 !capitaine-cursors
 Xcursor.size: 32
 
-Emacs.pane.menubar.font: Sans Serif:style=Normal:size=8
-Emacs.menu*.font: Sans Serif:style=Normal:size=8
-Emacs.dialog*.font: Sans Serif:style=Normal:size=10
-
-Emacs.pane.menubar.shadowThickness: 1
-Emacs.pane.menubar.arrowSpacing: 40
-Emacs.menu*.shadowThickness: 1
-Emacs.dialog*.shadowThickness: 0
-
-Emacs.pane.menubar.margin: 0
-Emacs.menu*.margin: 0
-Emacs.dialog*.margin: 0
+Emacs*FontBackend: xft
+Emacs*font: FONT
 
 Emacs*menubar: 0
 Emacs*verticalScrollBars:0
 Emacs*toolBar:0
+
 
 #include ".Xresources_emacs"
