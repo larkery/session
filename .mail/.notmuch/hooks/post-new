@@ -3,33 +3,21 @@
 NEW=$(notmuch count -- "tag:new")
 NEW_IN=$(notmuch count -- "tag:new and not tag:sent")
 
-n () {
-    c=$1
-    shift
-    if [[ $c == 0 ]]; then
-        icon=mail-read
-    else
-        icon=mail-unread
-    fi
-    notify -a notmuch -i $icon "$@"  
-}
-
 if [[ $NEW -gt 0 ]]; then
-    # echo "classify"
-    # $MAIL_DIR/.notmuch/hooks/classify classify tag:new
     echo "refile"
     CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-#     SUB=$(notmuch search --limit=10 --format=json -- tag:new and not tag:sent |
-#               jq -r '
-# def trunc(n): if (. | length) < n then . else .[:n] + "..." end;
-# .[]| 
-# "<small><b>\(.authors|trunc(15)):</b> \(.subject | trunc(30))</small> "
-# ')
-
     if [ $NEW_IN -ne 0 ]
     then
-        notmuch search --format=json -- tag:new and not tag:sent | jq -r 'def trunc(n): if (. | length) < n then . else .[:n] + "..." end; .[]| [.date_relative, (.subject | trunc(40)), (.authors |trunc(20))] | @tsv' | column -t -s $'\t'
+        NEW_WORK=$(notmuch count -- "tag:new and tag:work and not tag:sent")
+        NEW_HOME=$(notmuch count -- "tag:new and tag:home and not tag:sent")
+        UR_WORK=$(notmuch count -- "tag:unread and tag:work and not tag:sent")
+        UR_HOME=$(notmuch count -- "tag:unread and tag:home and not tag:sent")
+        F_WORK=$(notmuch count -- "tag:flagged and tag:work and not tag:sent")
+        F_HOME=$(notmuch count -- "tag:flagged and tag:home and not tag:sent")
+        notify -a notmuch -i mail-unread "New email" \
+"    <b>Work</b> │ +${NEW_WORK} │ U${UR_WORK} │ ★${F_WORK}
+<b>Personal</b> │ +${NEW_HOME} │ U${UR_HOME} │ ★${F_HOME}"
     fi
     
     notmuch tag -new -- tag:new

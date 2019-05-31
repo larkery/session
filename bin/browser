@@ -1,5 +1,5 @@
 #!/bin/sh
-id=$(xdotool search --onlyvisible --classname Navigator)
+id=$(xdotool search --onlyvisible --classname Navigator|tail -n 1)
 if [[ -z $id ]]; then
     exec firefox --new-window "$@"
 else

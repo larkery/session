@@ -12,9 +12,9 @@ scheme http
 scheme https
 exec browser "$1"
 mime text/html
-name htm$
-name html$
-exec browser "file:///$1"
+name .*\.htm$
+name .*\.html$
+exec browser "file:///$(readlink -f $1)"
 mime image/.+
 exec sxiv "$1"
 test [ -d "$1/.git" ]

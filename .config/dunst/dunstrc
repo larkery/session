@@ -1,5 +1,5 @@
 [global]
-    font = Sans 12
+    font = Monospace 12
     allow_markup = yes
     format = "<b>%s</b>\n%b %p"
     icon_folders = /run/current-system/sw/share/icons/gnome/16x16/status/
