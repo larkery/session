@@ -11,13 +11,11 @@ if [[ $NEW -gt 0 ]]; then
     then
         NEW_WORK=$(notmuch count -- "tag:new and tag:work and not tag:sent")
         NEW_HOME=$(notmuch count -- "tag:new and tag:home and not tag:sent")
-        UR_WORK=$(notmuch count -- "tag:unread and tag:work and not tag:sent")
-        UR_HOME=$(notmuch count -- "tag:unread and tag:home and not tag:sent")
-        F_WORK=$(notmuch count -- "tag:flagged and tag:work and not tag:sent")
-        F_HOME=$(notmuch count -- "tag:flagged and tag:home and not tag:sent")
         notify -a notmuch -i mail-unread "New email" \
-"    <b>Work</b> │ +${NEW_WORK} │ U${UR_WORK} │ ★${F_WORK}
-<b>Personal</b> │ +${NEW_HOME} │ U${UR_HOME} │ ★${F_HOME}"
+"<b>Work</b>
+$(notmuch search --format=json --output=summary tag:new and tag:work and not tag:sent | jq -r '.[]|.subject')
+<b>Personal</b>
+$(notmuch search --format=json --output=summary tag:new and tag:home and not tag:sent | jq -r '.[]|.subject')"
     fi
     
     notmuch tag -new -- tag:new
