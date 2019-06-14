@@ -1,90 +1,68 @@
-#!/usr/bin/env zsh
-if [ "$1" = "-bg" ]; then
-    shift
-    xdg-open "$@" &
-    disown
-    exit
-fi
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use v5.28.1;
 
-RULES_FILE="$HOME/.config/open-rules"
+sub handle;
 
-if [ "$1" = "-rules" ]; then
-    shift
-    RULES_FILE="$1"
-    shift
-fi
-
-err () {
-    echo "error: $@" 1>&2
+sub urldecode {
+    my ($rv) = @_;
+    $rv =~ s/\+/ /g;
+    $rv =~ s/%(..)/pack("c",hex($1))/ge;
+    return $rv;
 }
 
-[[ "$#" -gt 0 ]] || {err "$0: requires an argument" && exit 1}
+sub name { my $x = shift(@_); sub { $_[0] =~ $x; }; }
+sub mime { my $x = shift(@_); sub { $_[1] =~ $x; }; }
+sub run  { my $x = shift(@_); sub { exec $x, $_[0]; }; }
 
-export XDG_OPEN_DEPTH=$(( ${XDG_OPEN_DEPTH:-0} + 1 ))
+sub browse_file {
+    my $arg = $_[0]; my $fp = qx/readlink -f $arg/;
+    exec "browser", "file:///$fp";
+}
 
-if [[ $XDG_OPEN_DEPTH -gt 5 ]]; then
-    err "recursive xdg-open loop" "$1"
-    exit 1
-fi
+sub browse_url { exec "browser", $_[0]; }
+sub emacs { exec "emacsclient", "-c", "-n", $_[0]; }
 
-setopt REMATCH_PCRE
-setopt EXTENDED_GLOB
+sub handle_file {
+    my $u = urldecode $_[0];
+    $u =~ s/^file://g;
+    $u =~ s/[\/\\]+/\//g;
+    $u =~ s/(^\/((?i)cse-bs3-(data|file).+)\/[^\/]+)/\/net\L$1/g;
+    handle $u;
+}
 
-if [ -e "$1" ]; then
-    mime="$(file --mime-type --brief $1)"
-    exists=1
-fi
+my @rules = (
+    [[name("^https?:")], \&browse_url],
+    [[name("\\.html\$"), mime("^text/html\$")], \&browse_file ],
+    [[name("^file://")], \&handle_file],
+    [[mime("application/msword"),
+      mime("application/vnd.oasis.opendocument.text"),
+      name("\\.(docx?|xlsx?|tab|csv)\$")], run "soffice"],
+    [[mime("^image/")], run "sxiv"],
+    [[mime("^text/"), mime("inode/directory"),
+      name("^emacsclient:")], \&emacs],
+    [[mime("^application/pdf\$"), name("\\.pdf\$")],
+     run "mupdf-x11"]
+    );
 
-found=1
 
-echo "xdg-open $1 $mime" >> ~/temp/open-log
+sub handle {
+    my $arg = shift(@_);
 
-while read -r mode query; do
-    if [ $found != 0 ]; then
-        case $mode in
-            test)
-                t="$1"
-                1=${(q)1}
-                eval $(eval echo $query)
-                found=$?
-                1=$t
-                ;;
-            name)
-                [[ -n $exists && "$1" =~ "${query}" ]]
-                found=$?
-            ;;
-            mime)
-                [[ -n $exists && "$mime" =~ "${query}"  ]]
-                found=$?
-            ;;
-            scheme)
-                query="^${query}:"
-                [[ -z $exists && "$1" =~ "${query}" ]]
-                found=$?
-            ;;
-            url)
-                [[ -z $exists && "$1" =~ "${query}" ]]
-                found=$?
-            ;;
-        esac
-    elif [ $mode = run ]; then
-        eval $query
-        exit 0
-    elif [ $mode = exec ]; then
-        eval exec $query
-    fi
-done < "$RULES_FILE"
+    my $mime = qx/file --mime-type --brief $arg/ if -e $arg;
+    
+    $mime = $mime || 0;
+    foreach my $rule (@rules) {
+        my $tests = $rule->[0];
+        my $action = $rule->[1];
+        foreach my $test (@$tests) {
+            $action->($arg) if ($test->($arg, $mime));
+        }
+    }
+}
 
-TGT="$1"
-autoload -U regexp-replace
-regexp-replace TGT /+ /
+foreach my $arg (@ARGV) {
+    handle $arg;
+}
 
-CMD=$(yad --center --entry --on-top --completion --entry-label "Open $TGT with:" ${(ko)commands})
-
-if [[ $? -eq 0 ]]; then
-    echo "exec $CMD $TGT" >> ~/temp/open-log
-    exec "$CMD" "$TGT"
-else
-    err "xdg-open failed: $1 has no matching rule"
-    exit 1
-fi
