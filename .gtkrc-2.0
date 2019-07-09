@@ -1,6 +1,7 @@
 gtk-theme-name = "Zukitwo"
 gtk-cursor-theme-name = Vanilla-DMZ-AA
 gtk-cursor-theme-size = 32
+gtk-key-theme-name = "Emacs"
 
 style "noscrollbars" {
   GtkScrollbar::slider-width=0

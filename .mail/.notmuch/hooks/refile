@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch python35Packages.argparse
+#! nix-shell --show-trace -i python3 -p python3 python35Packages.notmuch python35Packages.ConfigArgParse
 
 from   __future__ import print_function
 import notmuch, os, shutil, sys

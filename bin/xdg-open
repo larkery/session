@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use File::Basename;
 use v5.28.1;
 
 sub handle;
@@ -15,6 +16,15 @@ sub urldecode {
 sub name { my $x = shift(@_); sub { $_[0] =~ $x; }; }
 sub mime { my $x = shift(@_); sub { $_[1] =~ $x; }; }
 sub run  { my $x = shift(@_); sub { exec $x, $_[0]; }; }
+
+sub ask {
+    my $nam = basename($_[0]);
+    my $result = qx/dmenu_path | dmenu -l 10 -p "open $nam: "/;
+    chomp($result);
+    if ($result) {
+        exec $result, $_[0];
+    }
+}
 
 sub browse_file {
     my $arg = $_[0]; my $fp = qx/readlink -f $arg/;
@@ -43,14 +53,15 @@ my @rules = (
     [[mime("^text/"), mime("inode/directory"),
       name("^emacsclient:")], \&emacs],
     [[mime("^application/pdf\$"), name("\\.pdf\$")],
-     run "mupdf-x11"]
+     run "mupdf-x11"],
+    [[sub {1;}], \&ask]
     );
 
 
 sub handle {
     my $arg = shift(@_);
 
-    my $mime = qx/file --mime-type --brief $arg/ if -e $arg;
+    my $mime = qx/file --mime-type --brief -- "$arg"/ if -e $arg;
     
     $mime = $mime || 0;
     foreach my $rule (@rules) {

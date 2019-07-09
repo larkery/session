@@ -1,8 +1,8 @@
 #!/bin/sh
 id=$(xdotool search --onlyvisible --classname Navigator|tail -n 1)
 if [[ -z $id ]]; then
-    exec firefox --new-window "$@"
+    exec firejail firefox --new-window "$@"
 else
     xdotool windowactivate $id
-    exec firefox --new-tab "$@"
+    exec firejail firefox --new-tab "$@"
 fi

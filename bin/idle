@@ -6,6 +6,7 @@ use warnings;
 use strict;
 use Mail::IMAPClient;
 use IO::Socket::SSL;
+use Socket;
 
 use POSIX qw(setsid);
 setsid;
@@ -76,7 +77,7 @@ for my $server ( keys %accts ) {
             print "connecting to $host:$ssltype...\n";
             my $client;
             if ($ssltype eq 'IMAPS') {
-                my $socket = IO::Socket::SSL->new (PeerAddr => $host, PeerPort => 993)
+                my $socket = IO::Socket::SSL->new ( PeerAddr => $host, PeerPort => 993)
                     or next reconnect;
                 $client = Mail::IMAPClient->new(
                     Socket => $socket,
@@ -94,7 +95,7 @@ for my $server ( keys %accts ) {
                     );
             }
             next reconnect unless $client;
-
+            setsockopt($client->Socket(), SOL_SOCKET, SO_KEEPALIVE, pack("l", 1));
             $client->select($mailbox) or next reconnect;
             
             until (0) {
