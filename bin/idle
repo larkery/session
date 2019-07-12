@@ -158,7 +158,11 @@ $inotify_thread->detach();
 while () {
     lock(%pending);
     cond_wait(%pending);
-    sleep(2);
+    my $timed_out = 0;
+    until ($timed_out) {
+        lock(%pending);
+        $timed_out = !cond_timedwait(%pending, time() + 5);
+    }
     {
         lock(%pending);
         my @boxes = keys %pending;
