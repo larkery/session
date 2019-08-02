@@ -161,7 +161,7 @@ while () {
     my $timed_out = 0;
     until ($timed_out) {
         lock(%pending);
-        $timed_out = !cond_timedwait(%pending, time() + 5);
+        $timed_out = !cond_timedwait(%pending, time() + 10);
     }
     {
         lock(%pending);
