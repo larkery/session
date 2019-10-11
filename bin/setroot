@@ -1,9 +1,9 @@
 #!/bin/sh
 xsetroot -cursor_name left_ptr
-
-if [[ -d ~/temp/wallpaper ]]; then
-    feh --randomize --bg-fill ~/temp/wallpaper
-else
-    hsetroot -add '#aa00aa' -add '#00bfff' -gradient 30
-fi
-
+COLORS=('#302040' '#504020' '#503050' '#303030' '#202020' '#804020')
+N=${#COLORS[@]}
+RANDOM=$$$(date +%s)
+C1=${COLORS[$RANDOM % $N ]}
+C2=${COLORS[$RANDOM % $N ]}
+echo $C1 $C2
+hsetroot -add $C1 -add $C2 -gradient 30

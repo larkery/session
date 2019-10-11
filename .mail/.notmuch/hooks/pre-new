@@ -17,8 +17,15 @@ if [[ -z "$NO_SYNC" ]]; then
     then
         echo "check all mail"
         FULL=1
-        # also delete duplicates
         E=$(pmbsync 2>&1)
+
+        kill-dups () {
+            notmuch search --format=text0 --duplicate="$1" --output=files \* | xargs -0 rm >/dev/null 2>&1 
+        }
+
+        kill-dups 2 || true
+        kill-dups 3 || true
+        kill-dups 4 || true
     else
         echo check "$CHANGED"
         E=$(pmbsync $CHANGED 2>&1)

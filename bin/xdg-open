@@ -38,7 +38,7 @@ sub handle_file {
     my $u = urldecode $_[0];
     $u =~ s/^file://g;
     $u =~ s/[\/\\]+/\//g;
-    $u =~ s/(^\/((?i)cse-bs3-(data|file).+)\/[^\/]+)/\/net\L$1/g;
+    $u =~ s/(^\/((?i)cse-bs3-(data|file)\/[^\/]+))(.*)$/\/net\/\L$2\E$4/g;
     handle $u;
 }
 

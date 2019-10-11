@@ -8,31 +8,11 @@ self: super:
     ];
   };
 
-  rStudioEnv = self.buildEnv {
-    name = "r-studio-environment";
-    paths = [(super.rstudioWrapper.override {
-      packages = with self.rPackages ; [ dplyr tidyr ggplot2 openxlsx ];
-    })];
-  };
-
   rEnvironment = self.buildEnv {
     name = "r-environment";
     paths = [(self.rWrapper.override {
       packages = with self.rPackages; [
-        ggplot2 dplyr tidyr purrr openxlsx fuzzyjoin assertthat microbenchmark
-        memoise testthat
-        XLConnect data_table downloader
-        RSQLite
-        validate
-        optparse
-        Hmisc
-        lintr
-        rnrfa
-        Hmisc
-        memisc
-        lubridate
-        hexbin
-        kernlab
+        ggplot2 dplyr tidyr
       ];
     })];
   };
