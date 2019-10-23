@@ -12,7 +12,7 @@ self: super:
     name = "r-environment";
     paths = [(self.rWrapper.override {
       packages = with self.rPackages; [
-        ggplot2 dplyr tidyr
+        ggplot2 dplyr tidyr openxlsx
       ];
     })];
   };
@@ -26,4 +26,6 @@ self: super:
     name = "java-packages";
     paths = with self; [jdk maven gradle];
   };
+
+  nixopsPatched = ((import ../../../../p/nixops/release.nix) {nixpkgs = self.path;}).build.x86_64-linux;
 }

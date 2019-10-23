@@ -12,11 +12,11 @@ if [[ $NEW -gt 0 ]]; then
         NEW_WORK=$(notmuch count -- "tag:new and tag:unread and tag:work and not tag:sent")
         NEW_HOME=$(notmuch count -- "tag:new and tag:unread and tag:home and not tag:sent")
         if [ $NEW_WORK -ne 0 ]; then
-            notify -a notmuch -i mail-unread "<b>cse:</b> $NEW_WORK" \
+            notify -a notmuch -i mail-unread "cse: $NEW_WORK" \
 "$(notmuch search --format=json --output=summary tag:new and tag:unread and tag:work and not tag:sent | jq -r '.[]|.subject')"
         fi
         if [ $NEW_HOME -ne 0 ]; then
-            notify -a notmuch -i mail-unread "<b>fastmail:</b> $NEW_HOME" \
+            notify -a notmuch -i mail-unread "fastmail: $NEW_HOME" \
 "$(notmuch search --format=json --output=summary tag:new and tag:unread and tag:home and not tag:sent | jq -r '.[]|.subject')"
         fi
         
