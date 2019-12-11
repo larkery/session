@@ -19,7 +19,11 @@ self: super:
 
   clojurePackages = self.buildEnv {
     name = "clojure-packages";
-    paths = with self; [clojure leiningen boot];
+    paths =
+      with self;
+      let cl = clojure.override {
+        jdk11 = jdk; # jdk 11 doesn't work right
+      }; in [cl leiningen boot];
   };
 
   javaPackages = self.buildEnv {
