@@ -4,24 +4,16 @@ NEW=$(notmuch count -- "tag:new")
 NEW_IN=$(notmuch count -- "tag:new and not tag:sent")
 
 if [[ $NEW -gt 0 ]]; then
-    echo "refile"
+    if [[ $NEW_IN -gt 0 ]]; then
+        notmuch search --format=json --output=summary tag:new and not tag:sent |
+        jq -r '.[] | [.authors, .subject] | @sh' |
+        while read -r line; do
+            words=(${(z)line})
+            notify-send -i mail-read "${(Q)words[1]}" "${(Q)words[2]}"
+        done
+    fi
     CHANGED=("${(@f)$($MAIL_DIR/.notmuch/hooks/refile)}")
 
-    if [ $NEW_IN -ne 0 ]
-    then
-        NEW_WORK=$(notmuch count -- "tag:new and tag:unread and tag:work and not tag:sent")
-        NEW_HOME=$(notmuch count -- "tag:new and tag:unread and tag:home and not tag:sent")
-        if [ $NEW_WORK -ne 0 ]; then
-            notify -a notmuch -i mail-unread "cse: $NEW_WORK" \
-"$(notmuch search --format=json --output=summary tag:new and tag:unread and tag:work and not tag:sent | jq -r '.[]|.subject')"
-        fi
-        if [ $NEW_HOME -ne 0 ]; then
-            notify -a notmuch -i mail-unread "fastmail: $NEW_HOME" \
-"$(notmuch search --format=json --output=summary tag:new and tag:unread and tag:home and not tag:sent | jq -r '.[]|.subject')"
-        fi
-        
-    fi
-    
     notmuch tag -new -- tag:new
 
     # if the refiler changed some stuff, we should probably sync again
