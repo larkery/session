@@ -16,6 +16,8 @@ setsid;
 
 $ENV{"QUIET"} = "1";
 
+my $delay_time = int($ENV{"DELAY"} or 10);
+
 unless (-t STDIN) {
     exec "urxvt", "-bg", "darkslategrey", "-e", $0;
 }
@@ -25,7 +27,6 @@ open my $mbsync, $ENV{"HOME"} . "/.mbsyncrc" or die $!;
 my $acct;
 my %accts;
 my @maildirs;
-
 
 while (my $line = <$mbsync>) {
     next if $line =~ /^\s*#/;
@@ -161,7 +162,7 @@ while () {
     my $timed_out = 0;
     until ($timed_out) {
         lock(%pending);
-        $timed_out = !cond_timedwait(%pending, time() + 10);
+        $timed_out = !cond_timedwait(%pending, time() + $delay_time);
     }
     {
         lock(%pending);
