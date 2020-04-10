@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if xset q | grep -q "DPMS is Enabled"; then
+    xset -dpms
+    notify-send "Screen idle disabled"
+else
+    xset +dpms
+    notify-send "Screen idle enabled"
+fi
