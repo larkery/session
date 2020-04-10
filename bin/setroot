@@ -1,9 +1,3 @@
 #!/bin/sh
 xsetroot -cursor_name left_ptr
-COLORS=('#302040' '#504020' '#503050' '#303030' '#202020' '#804020')
-N=${#COLORS[@]}
-RANDOM=$$$(date +%s)
-C1=${COLORS[$RANDOM % $N ]}
-C2=${COLORS[$RANDOM % $N ]}
-echo $C1 $C2
-hsetroot -add $C1 -add $C2 -gradient 30
+feh --recursive --randomize --bg-fill ~/misc/wallpaper
