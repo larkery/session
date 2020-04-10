@@ -14,7 +14,7 @@ gpg-connect-agent -q updatestartuptty /bye
 autorandr -c
 pkill redshift-gtk
 redshift-gtk -l 51.455313:-2.591902 &
-xss-lock -- i3lock -c 770000 &
+xss-lock -- i3lock -c 8fbc8f &
 dunst &
 pasystray &
 nm-applet &
@@ -24,3 +24,6 @@ udiskie -t &
 export GDK_CORE_DEVICE_EVENTS=1
 # force soffice to use GTK in xmonad.
 export SAL_USE_VCLPLUGIN=gtk
+
+xset s off
+xset dpms 600
